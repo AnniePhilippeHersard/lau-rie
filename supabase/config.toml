@@ -1,0 +1,9 @@
+# Configuration Supabase CLI. La vérification JWT de la plateforme est désactivée
+# pour les deux fonctions : chacune fait son propre contrôle d'accès.
+#  - gallery     : appelée par des clients non connectés (slug + code bcrypt + anti brute-force)
+#  - admin-users : vérifie elle-même le jeton de session (auth.getUser) puis la table admins
+[functions.gallery]
+verify_jwt = false
+
+[functions.admin-users]
+verify_jwt = false
