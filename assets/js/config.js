@@ -6,8 +6,8 @@
 // sur les règles de la base (RLS) et sur les fonctions, pas sur le secret de cette clé.
 // Ne jamais coller ici la clé « secret » ou « service_role ».
 export const SUPABASE = {
-  url: "",      // ex. "https://abcdefgh.supabase.co"
-  anonKey: "",  // ex. "sb_publishable_…" ou la clé « anon public »
+  url: "https://dmwkwhjjckownltbzzqc.supabase.co/rest/v1/",      // ex. "https://abcdefgh.supabase.co"
+  anonKey: "sb_publishable_V0l-MtUvBIxBznMQMj3IOQ_0AYIrlZd",  // ex. "sb_publishable_…" ou la clé « anon public »
 };
 
 // Adresse publique du site, utilisée dans les liens et QR codes des galeries.
