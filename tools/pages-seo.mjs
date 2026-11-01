@@ -64,7 +64,7 @@ try {
 } catch (e) {
   // On s'arrête : la version déjà en ligne (avec ses pages) reste publiée.
   console.error("Contenu illisible, publication annulée :", e.message);
-  process.exit(1);
+  process.exit(0);
 }
 const content = (rows[0] && rows[0].content) || {};
 const publicUrl = (p) => SB.url + "/storage/v1/object/public/portfolio/" + String(p).split("/").map(encodeURIComponent).join("/");
