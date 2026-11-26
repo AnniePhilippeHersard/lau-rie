@@ -240,14 +240,15 @@ a:hover .ph img { transform: scale(1.03); }
 .about-grid { margin-top: 72px; display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); gap: 16px; align-items: start; }
 .about-photo { position: relative; }
 .about-photo .ph { aspect-ratio: 16 / 10; }
-.about-photo .note { position: absolute; top: 0; right: 0; width: min(340px, 46%); background: var(--paper); padding: 0 0 24px 24px; font-size: var(--t-body); }
+/* Le texte suit la photo (en dessous), la photo reste entière */
+.about-photo .note { margin: 0; padding-top: 18px; max-width: 46ch; font-family: var(--f-display); font-style: italic; font-size: var(--t-lead); line-height: 1.4; color: var(--muted); }
 .facts { display: grid; gap: 22px; padding-left: clamp(8px, 2vw, 32px); }
 .facts dt { font-size: var(--t-small); color: var(--muted); }
 .facts dd { font-family: var(--f-display); font-weight: 500; font-size: var(--t-serif-s); line-height: 1.2; }
 @media (max-width: 760px) {
   .about-grid { margin-top: 44px; grid-template-columns: 1fr; gap: 0; }
   .about-photo .ph { aspect-ratio: 4 / 3; }
-  .about-photo .note { position: static; width: auto; padding: 20px 0 32px; }
+  .about-photo .note { padding: 16px 0 32px; }
   .facts { grid-template-columns: 1fr 1fr; gap: 20px 16px; padding-left: 0; }
 }
 
