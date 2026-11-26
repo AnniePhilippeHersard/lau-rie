@@ -153,6 +153,7 @@ stories.forEach((s, k) => {
   h = setMeta(h, "property", "og:url", url);
   h = setMeta(h, "property", "og:type", "article");
   h = setMeta(h, "property", "og:image", pics[0].src);
+  h = setMeta(h, "name", "twitter:image", pics[0].src);
   h = h.replace(/<meta property="og:image:(width|height)" content="[^"]*">\n?/g, "");
   h = h.replace(/<link rel="canonical" href="[^"]*">/, '<link rel="canonical" href="' + esc(url) + '">');
   const ld = {
