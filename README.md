@@ -36,8 +36,9 @@ Front 100 % statique (HTML, CSS, JavaScript sans framework ni build), hébergé 
 | `supabase/functions/admin-users` | Création de comptes, mots de passe provisoires, retrait d'accès, envoi du lien d'une galerie aux clients (administratrices seulement) |
 | `supabase/functions/reminders` | Rappels avant fermeture, appelée chaque jour par `pg_cron` + `pg_net` |
 | `assets/js/story.js` | Balisage et adresses d'une séance, partagés par le site et par `tools/pages-seo.mjs` |
-| `tools/pages-seo.mjs` | Prépare la publication : copie du site, une page HTML par séance (titre, description, canonical, Open Graph, JSON-LD), `sitemap.xml` |
+| `tools/pages-seo.mjs` | Prépare la publication : copie du site, accueil pré-rempli (titre, description, fiche entreprise JSON-LD), une page HTML par séance, `sitemap.xml`, `llms.txt` (résumé pour les assistants IA) |
 | `.github/workflows/site.yml` | Publication GitHub Pages : à chaque push sur `main`, chaque nuit et à la demande |
+| `.github/workflows/sauvegarde.yml` + `tools/sauvegarde.mjs` | Sauvegarde mensuelle de la base, chiffrée (AES-256, phrase secrète), conservée 90 jours en artefact ; ne fait rien sans les secrets |
 
 Sans configuration Supabase, le site tourne en **mode démonstration** : contenus d'exemple, galerie `LT-2026` / `LT-INVITES`, contact par la messagerie du visiteur.
 
@@ -64,7 +65,7 @@ Sans configuration Supabase, le site tourne en **mode démonstration** : contenu
 
 ```sh
 supabase link --project-ref <ref>
-supabase db push                                   # les quatre migrations
+supabase db push                                   # les six migrations
 supabase functions deploy gallery --no-verify-jwt
 supabase functions deploy admin-users --no-verify-jwt
 supabase functions deploy reminders --no-verify-jwt

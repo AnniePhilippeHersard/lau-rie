@@ -1,7 +1,9 @@
 // Accès aux données : Supabase si configuré, sinon mode démonstration.
 import { SUPABASE, SITE_URL } from "./config.js";
 
-export const DEMO = !SUPABASE.url || !SUPABASE.anonKey;
+// Adresse du projet seule : on retire un éventuel « /rest/v1/ » (ou « / ») collé par erreur
+const BASE = String(SUPABASE.url || "").trim().replace(/\/(rest|auth|storage|functions)\/v1\/?$/i, "").replace(/\/+$/, "");
+export const DEMO = !BASE || !SUPABASE.anonKey;
 
 let clientPromise = null;
 export function getClient() {
@@ -9,7 +11,7 @@ export function getClient() {
   if (!clientPromise) {
     // supabase-js 2.45.4 hébergé avec le site (build UMD -> window.supabase)
     clientPromise = (window.supabase ? Promise.resolve() : loadScript(new URL("../vendor/supabase.min.js", import.meta.url).href))
-      .then(() => window.supabase.createClient(SUPABASE.url, SUPABASE.anonKey));
+      .then(() => window.supabase.createClient(BASE, SUPABASE.anonKey));
   }
   return clientPromise;
 }
@@ -25,7 +27,7 @@ export function loadScript(src) {
 }
 
 export function publicUrl(bucket, path) {
-  return `${SUPABASE.url.replace(/\/$/, "")}/storage/v1/object/public/${bucket}/${String(path).split("/").map(encodeURIComponent).join("/")}`;
+  return `${BASE}/storage/v1/object/public/${bucket}/${String(path).split("/").map(encodeURIComponent).join("/")}`;
 }
 
 // Adresse de base du site (sans « / » final), pour les liens et QR codes
@@ -43,17 +45,17 @@ export async function loadPublic() {
   // Les règles RLS ne laissent passer que le contenu public.
   const [s, p, r] = await Promise.all([
     rest("site_settings?select=content&id=eq.1"),
-    rest("portfolio?select=id,storage_path,width,height,caption,category&order=position.asc,created_at.desc"),
+    rest("portfolio?select=*&order=position.asc,created_at.desc"),
     rest("reviews?select=id,who,ctx,body,image_path&order=position.asc,created_at.desc"),
   ]);
   return {
     content: s[0]?.content ?? null,
-    portfolio: p.map((x) => ({ ...x, url: publicUrl("portfolio", x.storage_path) })),
+    portfolio: p.map((x) => ({ ...x, url: publicUrl("portfolio", x.storage_path), thumb: x.thumb_path ? publicUrl("portfolio", x.thumb_path) : null })),
     reviews: r,
   };
 }
 async function rest(q) {
-  const res = await fetch(`${SUPABASE.url.replace(/\/$/, "")}/rest/v1/${q}`, {
+  const res = await fetch(`${BASE}/rest/v1/${q}`, {
     headers: { apikey: SUPABASE.anonKey, Accept: "application/json" },
   });
   if (!res.ok) throw new Error("Contenu indisponible (" + res.status + ")");
@@ -67,7 +69,7 @@ export function libraryOf(portfolio) {
 
 // ---------------------------------------------------------------- fonction « gallery »
 export async function callGallery(payload) {
-  const res = await fetch(`${SUPABASE.url.replace(/\/$/, "")}/functions/v1/gallery`, {
+  const res = await fetch(`${BASE}/functions/v1/gallery`, {
     method: "POST",
     headers: { "Content-Type": "application/json", apikey: SUPABASE.anonKey },
     body: JSON.stringify(payload),

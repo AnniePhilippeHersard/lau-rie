@@ -116,10 +116,21 @@ Deno.serve(async (req) => {
         return json({ ok: true }, 200, headers);
       }
 
+      // Écran « Santé du site » : quels secrets sont présents (jamais leur valeur)
+      case "health": {
+        return json({
+          resend: Boolean(Deno.env.get("RESEND_API_KEY")),
+          notify: Boolean(Deno.env.get("NOTIFY_EMAIL")),
+          from: Boolean(Deno.env.get("REMIND_FROM") ?? Deno.env.get("NOTIFY_FROM")),
+          cron: Boolean(Deno.env.get("CRON_SECRET")),
+          origins: Boolean(Deno.env.get("ALLOWED_ORIGINS")),
+        }, 200, headers);
+      }
+
       case "send_gallery": {
         const id = String(body.gallery_id ?? "");
         if (!UUID.test(id)) return json({ error: "Galerie invalide" }, 400, headers);
-        const subject = typeof body.subject === "string" ? body.subject.trim() : "";
+        const subject = typeof body.subject === "string" ? body.subject.replace(/[\r\n\t]+/g, " ").trim() : ""; // une seule ligne : pas d'en-tête injecté
         const text = typeof body.text === "string" ? body.text.trim() : "";
         if (!subject || subject.length > 200) return json({ error: "Objet : entre 1 et 200 caractères." }, 400, headers);
         if (!text || text.length > 5000) return json({ error: "Message : entre 1 et 5 000 caractères." }, 400, headers);

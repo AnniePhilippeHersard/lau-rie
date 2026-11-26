@@ -32,6 +32,9 @@ publicReady.then(() => {
   // Pied de page : Instagram et e-mail de la photographe
   document.querySelectorAll(".foot [data-ig]").forEach((a) => { a.href = SITE.ig; });
   document.querySelectorAll(".foot [data-mail-only]").forEach((a) => { a.href = "mailto:" + SITE.mail; });
+  // Avis Google : proposé seulement si la photographe a collé son lien dans l'espace photographe
+  document.querySelectorAll(".g-google").forEach((p) => { p.hidden = !SITE.gWrite; });
+  document.querySelectorAll(".g-glink").forEach((a) => { if (SITE.gWrite) a.href = SITE.gWrite; });
 });
 document.querySelectorAll("[data-top]").forEach((b) => b.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" })));
 
@@ -113,7 +116,32 @@ async function openExample() {
 $("access-form").addEventListener("submit", (e) => { e.preventDefault(); openWith($("code").value); });
 
 // ------------------------------------------------------------------ chargement d'une galerie
+// Liens des photos : ceux d'une visite précédente encore valables au moins 1 h sont réutilisés.
+// Même adresse = image déjà dans le cache du navigateur, donc rien à retélécharger.
+const LINKS = "lr-links", MARGIN = 3600e3;
+function reuseLinks(data) {
+  if (!data.links_until || LOCAL) return;
+  const now = Date.now(), all = store.get(LINKS, {}) || {}, until = data.links_until;
+  for (const k of Object.keys(all)) {
+    const e = all[k];
+    ["p", "t", "d"].forEach((f) => { if (e[f] && e[f][1] < now + MARGIN) delete e[f]; });
+    if (!e.p && !e.t && !e.d) delete all[k];
+  }
+  const coverAt = data.photos.findIndex((p) => p.preview && p.preview === data.gallery.cover);
+  data.photos.forEach((p) => {
+    const e = all[p.id] || (all[p.id] = {});
+    [["p", "preview"], ["t", "thumb"], ["d", "download"]].forEach(([f, key]) => {
+      if (!p[key]) return; // lien retiré (téléchargement désactivé…) : on n'en ressort pas un ancien
+      if (e[f]) p[key] = e[f][0]; else e[f] = [p[key], until];
+    });
+  });
+  if (coverAt >= 0) data.gallery.cover = data.photos[coverAt].preview;
+  const keys = Object.keys(all);
+  if (keys.length > 4000) keys.slice(0, keys.length - 4000).forEach((k) => delete all[k]);
+  store.set(LINKS, all);
+}
 function load(data) {
+  reuseLinks(data);
   ROLE = data.role; G = data.gallery;
   P = data.photos.map((p) => ({ ...p, n: String(p.filename || "photo").replace(/\.[^.]+$/, "") }));
   favs = store.get(favKey(), null);
@@ -133,6 +161,7 @@ function load(data) {
   $("g-date").textContent = [G.kind, G.event_date ? fdate(G.event_date, { day: "numeric", month: "long", year: "numeric" }) : ""].filter(Boolean).join(", ");
   const cover = $("g-cover-img");
   if (G.cover) cover.src = G.cover; else cover.removeAttribute("src");
+  cover.style.objectPosition = G.cover_focus ? G.cover_focus[0] + "% " + G.cover_focus[1] + "%" : "";
   const lim = limitOf();
   $("g-limit").hidden = !lim && !G.expires_at;
   $("g-limit").textContent = (lim ? "Choisissez jusqu'à " + lim + " photos préférées : touchez leur cœur. " : "") +
@@ -209,7 +238,7 @@ function render() {
     const p = P[i], f = !!favs[p.id], w = p.width || 3, h = p.height || 2;
     const flags = (isOwner() && p.hidden ? '<span class="flag">' + EYE + "Masquée aux invités</span>" : "") + (isOwner() && NOTES[p.id] ? '<span class="flag">' + NOTE + "Note</span>" : "");
     return '<figure class="tile' + (f ? " fav" : "") + (isOwner() && p.hidden ? " hid" : "") + '" data-i="' + i + '">' + (flags ? '<span class="flags">' + flags + "</span>" : "") +
-      '<button class="open" type="button" aria-label="Agrandir la photo ' + esc(p.n) + '"><div class="ph" style="aspect-ratio:' + w + " / " + h + '"><img alt="' + esc(p.n) + '" src="' + esc(p.preview) + '" width="' + w + '" height="' + h + '" loading="lazy" decoding="async"></div></button>' +
+      '<button class="open" type="button" aria-label="Agrandir la photo ' + esc(p.n) + '"><div class="ph" style="aspect-ratio:' + w + " / " + h + '"><img alt="' + esc(p.n) + '" src="' + esc(p.thumb || p.preview) + '" width="' + w + '" height="' + h + '" loading="lazy" decoding="async"></div></button>' +
       '<div class="acts">' + heartBtn(i, f) + (G.allow_download ? '<button class="round" type="button" data-act="dl" aria-label="Télécharger ' + esc(p.n) + '">' + DL + "</button>" : "") + "</div></figure>";
   }).join("");
   $("empty").hidden = L.length > 0;
@@ -368,6 +397,8 @@ function openFb() {
 $("fb-text").addEventListener("input", fbCount);
 $("b-rev").onclick = openFb;
 $("send-rev").onclick = () => { closeSheets(); openFb(); };
+// Le message déjà écrit est copié : il n'y a plus qu'à le coller sur Google
+$("fb-glink").addEventListener("click", () => { const t = $("fb-text").value.trim(); if (t) copy(t, null, ""); });
 $("send-rev").hidden = false;
 $("fb-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -391,6 +422,8 @@ let li = 0, LL = [];
 function drawLb() {
   const p = P[LL[li]], f = !!favs[p.id];
   $("lb-img").src = p.preview; $("lb-img").alt = "Photo " + p.n;
+  // La grille n'a chargé que des miniatures : on prépare les photos voisines en grand
+  [li + 1, li - 1].forEach((k) => { const q = P[LL[k]]; if (q && q.preview) { const im = new Image(); im.decoding = "async"; im.src = q.preview; } });
   $("lb-n").textContent = (li + 1) + " / " + LL.length;
   $("lb-cap").textContent = p.n + (p.collection ? ", " + p.collection.toLowerCase() : "");
   $("lb-fav").setAttribute("aria-pressed", String(f));
