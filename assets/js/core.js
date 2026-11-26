@@ -64,9 +64,16 @@ export function demoImg(key) {
   return d ? { src: new URL(`../img/demo/${key}.webp`, import.meta.url).href, w: d[0], h: d[1], demo: true } : null;
 }
 // Une « référence » de photo est soit une clé d'exemple, soit un chemin du portfolio.
+// Attributs srcset/sizes d'une image (rien pour les photos d'exemple, en une seule taille)
+export const srcAttrs = (d, sizes) => (d && d.ss ? ' srcset="' + esc(d.ss) + '" sizes="' + esc(sizes) + '"' : "");
 export function makeImg(lib) {
   return (ref, fallback) => {
-    if (ref && lib && lib[ref]) return { src: lib[ref].url, w: lib[ref].width || 1200, h: lib[ref].height || 800, alt: lib[ref].caption || "" };
+    if (ref && lib && lib[ref]) {
+      const p = lib[ref], w = p.width || 1200;
+      // Deux tailles : vignette (≈ 1 000 px) pour les petits emplacements et les téléphones, grande sinon
+      const ss = p.thumb && p.thumb_width && p.thumb_width < w ? p.thumb + " " + p.thumb_width + "w, " + p.url + " " + w + "w" : "";
+      return { src: p.url, ss, w, h: p.height || 800, alt: p.caption || "", pos: p.focus_x != null ? p.focus_x + "% " + p.focus_y + "%" : "" };
+    }
     return demoImg(ref) || (fallback ? demoImg(fallback) : null);
   };
 }
@@ -74,6 +81,8 @@ export function makeImg(lib) {
 // ---------------------------------------------------------------- contenus par défaut
 export const SITE_DEF = {
   t1: "Des histoires", t2: "à garder",
+  // Ligne au-dessus du grand titre : métier et villes, lue par Google
+  kicker: "Photographe mariage & famille · Saumur, Angers, Nantes",
   lede: "Photographe de mariages, de familles et de portraits entre Saumur et Nantes. Chaque séance arrive dans une galerie privée, à feuilleter, choisir et partager.",
   mail: "bonjour@lau-rie.fr", ig: "https://www.instagram.com/",
   prices: [
@@ -82,9 +91,9 @@ export const SITE_DEF = {
     { name: "Mariage, demi-journée", detail: "La cérémonie et la séance couple : quatre heures, environ 250 photos.", price: 1200 },
     { name: "Mariage, journée", detail: "Des préparatifs à la première danse : dix heures, environ 500 photos.", price: 1900 },
   ],
-  seoTitle: "lau.rie, photographe de mariage et de famille à Nantes",
-  seoDesc: "Photographe entre Saumur et Nantes : mariages, familles et portraits en lumière naturelle, en Pays de la Loire et Centre-Val de Loire.",
-  city: "Nantes", area: "Pays de la Loire, Centre-Val de Loire",
+  seoTitle: "Photographe mariage et famille Saumur, Angers, Nantes",
+  seoDesc: "Photographe de mariage et de famille entre Saumur, Angers et Nantes : reportage en lumière naturelle et galerie privée en ligne, en Anjou et Loire-Atlantique.",
+  city: "Nantes", area: "Saumur, Angers, Nantes, Maine-et-Loire, Loire-Atlantique, Pays de la Loire",
   mailSubj: "Votre galerie ferme le {date}",
   mailBody: "Bonjour {clients},\n\nVotre galerie reste en ligne jusqu'au {date}. Pensez à télécharger vos photos préférées en haute définition avant cette date.\n\nLien : {lien}\nCode : {code}\n\nUne question ? Répondez simplement à cet e-mail.\n\nÀ bientôt,\nlau.rie",
   // Réponses toutes prêtes aux demandes de contact ({prenom}, {formule}, {tarifs}, {site})

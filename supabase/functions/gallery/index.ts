@@ -22,7 +22,8 @@ const supabase = createClient(
 );
 
 const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS") ?? "*").split(",").map((s) => s.trim()).filter(Boolean);
-const URL_TTL = 60 * 60 * 3;
+// Liens des photos valables 12 h : la galerie les réutilise d'une visite à l'autre (cache du navigateur)
+const URL_TTL = 60 * 60 * 12;
 const MAX_FAILS = 10;
 const FAIL_WINDOW_MS = 15 * 60_000;
 const MAX_FAILS_ALL = 200;           // plafond global (attaque répartie sur beaucoup d'adresses)
@@ -77,6 +78,10 @@ Deno.serve(async (req) => {
   const ip = clientIp(req);
 
   try {
+    // Vérification de l'espace photographe (écran « Santé du site ») : aucune donnée renvoyée
+    if (body.action === "health") {
+      return json({ ok: true, version: "2026-11-27", mails: Boolean(Deno.env.get("RESEND_API_KEY") && Deno.env.get("NOTIFY_EMAIL")) }, 200, headers);
+    }
     if (body.action === "contact") {
       const r = await contact(body, ip);
       return json(r.body, r.status, headers);
@@ -157,8 +162,9 @@ async function openGallery(gid: string, role: "owner" | "guest") {
     .eq("id", gid).single();
   if (error) throw error;
 
+  // « * » : la colonne du point important (6e migration) est lue si elle existe
   let q = supabase.from("photos")
-    .select("id, filename, width, height, preview_path, collection, hidden_from_guests")
+    .select("*")
     .eq("gallery_id", gid);
   if (!owner) q = q.eq("hidden_from_guests", false);
   // Photos, dernière sélection, avis et compteur de visites : en parallèle
@@ -176,13 +182,18 @@ async function openGallery(gid: string, role: "owner" | "guest") {
   const list = photos ?? [];
   const paths = list.map((p) => p.preview_path);
   const bucket = supabase.storage.from("galleries");
-  const [pv, dl] = paths.length
+  // Miniatures (7e migration) : la grille charge une image légère, le plein écran l'aperçu 2 048 px
+  const thumbPaths = list.map((p) => p.thumb_path).filter(Boolean) as string[];
+  const [pv, dl, tb] = paths.length
     ? await Promise.all([
       bucket.createSignedUrls(paths, URL_TTL),
       g.allow_download ? bucket.createSignedUrls(paths, URL_TTL, { download: true }) : Promise.resolve({ data: [] }),
+      thumbPaths.length ? bucket.createSignedUrls(thumbPaths, URL_TTL) : Promise.resolve({ data: [] }),
     ])
-    : [{ data: [] }, { data: [] }];
+    : [{ data: [] }, { data: [] }, { data: [] }];
   const previews = pv.data ?? [], downloads = dl.data ?? [];
+  const thumbs = new Map<string, string>();
+  (tb.data ?? []).forEach((u: { signedUrl?: string | null }, k: number) => { if (u?.signedUrl) thumbs.set(thumbPaths[k], u.signedUrl); });
   const last = sel.data ?? null, review = rev.data ?? null;
 
   const coverIdx = Math.max(0, list.findIndex((p) => p.id === g.cover_photo_id));
@@ -199,6 +210,7 @@ async function openGallery(gid: string, role: "owner" | "guest") {
       selection_limit: owner ? g.selection_limit : null,
       expires_at: g.expires_at,
       cover: previews[coverIdx]?.signedUrl ?? null,
+      cover_focus: list[coverIdx] && list[coverIdx].focus_x != null ? [list[coverIdx].focus_x, list[coverIdx].focus_y] : null,
       delivery_url: hd ? g.delivery_url : null,
       delivery_expires_at: hd ? g.delivery_expires_at : null,
       hd_for_guests: g.guest_hd,
@@ -213,10 +225,13 @@ async function openGallery(gid: string, role: "owner" | "guest") {
       collection: p.collection,
       hidden: owner ? p.hidden_from_guests : false,
       preview: previews[i]?.signedUrl ?? null,
+      thumb: (p.thumb_path && thumbs.get(p.thumb_path)) ?? null,
       download: downloads[i]?.signedUrl ?? null,
     })),
     last_selection: last,
     review,
+    // Fin de validité des liens (la galerie ne réutilise un lien que s'il reste au moins 1 h)
+    links_until: Date.now() + URL_TTL * 1000,
   };
 }
 
@@ -368,7 +383,7 @@ async function notify(subject: string, html: string, replyTo?: string) {
       body: JSON.stringify({
         from: Deno.env.get("NOTIFY_FROM") ?? "lau.rie <onboarding@resend.dev>",
         to,
-        subject,
+        subject: subject.replace(/[\r\n\t]+/g, " ").slice(0, 200), // texte venu d'un formulaire : une seule ligne
         html,
         ...(replyTo ? { reply_to: replyTo } : {}),
       }),

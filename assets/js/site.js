@@ -1,10 +1,10 @@
 // Site public : accueil, pages des séances (#seance-…), pages légales, contact.
 import {
-  $, esc, euro, reduce, store, toast, makeImg, mergeSite, slotRef, usesDemoPhotos, REVIEWS_DEMO,
+  $, esc, euro, srcAttrs, reduce, store, toast, makeImg, mergeSite, slotRef, usesDemoPhotos, REVIEWS_DEMO,
   makeLegal, setMeta, initTypo, EMAIL, DEMO_DIMS,
 } from "./core.js";
 import { DEMO, loadPublic, libraryOf, callGallery } from "./api.js";
-import { storyHtml, storyFile, findStory, storyTitle, storyDesc } from "./story.js";
+import { storyHtml, storyFile, findStory, storyTitle, storyDesc, businessLd } from "./story.js";
 
 // Page d'une séance créée pour Google (seance-….html) : la page n'affiche que cette séance
 const PAGE = document.body.dataset.seance || "";
@@ -84,7 +84,10 @@ drawer.addEventListener("keydown", (e) => { if (e.key === "Escape") { menu(false
 function putImg(el, ref) {
   const d = img(ref);
   if (!d) return;
+  // srcset avant src : le navigateur ne télécharge que la bonne taille
+  if (d.ss) { el.sizes = el.dataset.sizes || "(max-width: 760px) 100vw, 50vw"; el.srcset = d.ss; } else el.removeAttribute("srcset");
   el.src = d.src; el.width = d.w; el.height = d.h;
+  el.style.objectPosition = d.pos || "";
   if (d.alt) el.alt = d.alt;
 }
 function fillSlots() {
@@ -112,8 +115,9 @@ function drawWorks() {
     a.className = "work " + (few ? "" : "k" + [1, 2, 3, 4, 6, 5][i] + " ") + "rv";
     if (i % 2) a.style.setProperty("--d", "90ms");
     a.href = storyHref(s);
+    a.dataset.story = s.id;
     a.innerHTML = '<div class="ph"><img loading="lazy" alt="Séance ' + esc(s.title) + ", " + esc(String(s.kind).toLowerCase()) + " à " + esc(s.place) + '"' +
-      (d ? ' src="' + esc(d.src) + '" width="' + d.w + '" height="' + d.h + '"' : "") + '></div><div class="cap"><b>' + esc(s.title) + "</b><span>" + esc(s.kind) + ", " + esc(s.place) + "</span></div>";
+      (d ? srcAttrs(d, "(max-width: 760px) 90vw, 34vw") + ' src="' + esc(d.src) + '" width="' + d.w + '" height="' + d.h + '"' + (d.pos ? ' style="object-position:' + esc(d.pos) + '"' : "") : "") + '></div><div class="cap"><b>' + esc(s.title) + "</b><span>" + esc(s.kind) + ", " + esc(s.place) + "</span></div>";
     box.appendChild(a);
   });
   $("seances").hidden = !visibleStories().length;
@@ -145,7 +149,7 @@ function drawRun() {
   $("run").style.setProperty("--cols", ds.map((d, i) => (d ? (d.w / d.h) * (i === 0 ? 2.2 : 1) : 1).toFixed(3) + "fr").join(" "));
   $("run").innerHTML = ds.map((d, i) => {
     const f = !!exFavs[i];
-    return '<figure class="frame' + (i === 0 ? " lift" : "") + '" style="--r:' + (d ? d.w + " / " + d.h : "1") + '"><div class="ph">' + (d ? '<img alt="Photo ' + (i + 1) + ' de la galerie d\'exemple" src="' + esc(d.src) + '">' : "") + "</div>" +
+    return '<figure class="frame' + (i === 0 ? " lift" : "") + '" style="--r:' + (d ? d.w + " / " + d.h : "1") + '"><div class="ph">' + (d ? '<img alt="Photo ' + (i + 1) + ' de la galerie d\'exemple"' + srcAttrs(d, i === 0 ? "(max-width: 760px) 70vw, 40vw" : "(max-width: 760px) 40vw, 22vw") + ' src="' + esc(d.src) + '">' : "") + "</div>" +
       '<button class="round" type="button" data-act="fav" data-i="' + i + '" aria-pressed="' + f + '" aria-label="' + (f ? "Retirer des" : "Ajouter aux") + " favorites, photo " + (i + 1) + '">' + HEART.replace("FILL", f ? "currentColor" : "none") + "</button>" +
       '<figcaption class="cap">Photo ' + (i + 1) + "</figcaption></figure>";
   }).join("");
@@ -219,12 +223,13 @@ function drawReview(animate) {
   const r = L[avI];
   const put = () => {
     const d = img(r.image_path, "tender");
-    if (d) { $("av-img").src = d.src; $("av-img").width = d.w; $("av-img").height = d.h; }
+    if (d) { const im = $("av-img"); if (d.ss) { im.sizes = "(max-width: 760px) 90vw, 40vw"; im.srcset = d.ss; } else im.removeAttribute("srcset"); im.src = d.src; $("av-img").width = d.w; $("av-img").height = d.h; $("av-img").style.objectPosition = d.pos || ""; }
     $("av-img").alt = "Photo de la séance de " + r.who;
     $("av-text").textContent = "« " + r.body + " »";
     $("av-who").innerHTML = "<b>" + esc(r.who) + "</b><span>" + esc(r.ctx || "") + "</span>";
     $("av-n").textContent = (avI + 1) + " / " + L.length;
     $("av-nav").hidden = L.length < 2;
+    $("av-google").hidden = !SITE.gRead; if (SITE.gRead) $("av-glink").href = SITE.gRead;
   };
   if (!animate || reduce) { put(); return; }
   if (avBusy) return;
@@ -246,11 +251,15 @@ $("av-next").onclick = () => stepReview(1);
 $("ct-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const f = e.currentTarget, note = $("ct-note"), btn = f.querySelector("button[type=submit]");
-  const data = { kind: f.kind.value, name: f.name.value.trim(), email: f.email.value.trim(), when: f.when.value.trim(), message: f.msg.value.trim(), website: f.website.value };
+  const wed = f.kind.value === "Mariage";
+  // Mariage : lieu, invités et formule arrivent en tête du message, prêts à lire pour Laurie
+  const details = wed ? [["Lieu", f.place.value.trim()], ["Invités", f.guests.value], ["Formule", f.formula.value]].filter((x) => x[1]).map((x) => x[0] + " : " + x[1]) : [];
+  const typed = f.msg.value.trim();
+  const data = { kind: f.kind.value, name: f.name.value.trim(), email: f.email.value.trim(), when: f.when.value.trim(), message: (details.length ? details.join("\n") + (typed ? "\n\n" : "") : "") + typed, website: f.website.value };
   const bad = (el, msg) => { el.setAttribute("aria-invalid", "true"); el.setAttribute("aria-describedby", "ct-note"); note.textContent = msg; el.focus(); };
   if (!data.name) return bad(f.name, "Indiquez votre prénom.");
   if (!EMAIL.test(data.email)) return bad(f.email, "Votre e-mail semble incomplet.");
-  if (data.message.length < 5) return bad(f.msg, "Écrivez quelques mots sur votre projet.");
+  if (data.message.length < 5) return bad(f.msg, wed ? "Indiquez le lieu ou écrivez quelques mots sur votre mariage." : "Écrivez quelques mots sur votre projet.");
   if (DEMO) {
     // Sans Supabase : on prépare l'e-mail dans la messagerie du visiteur
     const subject = "Séance " + data.kind.toLowerCase() + (data.when ? ", " + data.when : "");
@@ -263,7 +272,7 @@ $("ct-form").addEventListener("submit", async (e) => {
   note.textContent = "Envoi…";
   try {
     await callGallery({ action: "contact", ...data });
-    f.reset();
+    f.reset(); contactKind();
     note.textContent = "Merci ! Votre message est bien arrivé. Je vous réponds sous deux jours.";
   } catch (err) {
     note.textContent = err.message + " Vous pouvez aussi écrire à " + SITE.mail + ".";
@@ -272,6 +281,22 @@ $("ct-form").addEventListener("submit", async (e) => {
   }
 });
 
+// Formulaire : questions propres au mariage seulement quand « Mariage » est choisi
+function contactKind() {
+  const f = $("ct-form"), wed = f.kind.value === "Mariage";
+  $("ct-wed").hidden = !wed;
+  $("ct-when-l").textContent = wed ? "Date du mariage" : "Date envisagée";
+  f.when.placeholder = wed ? "Par exemple : samedi 19 juin 2027" : "Par exemple : un dimanche de septembre";
+  f.msg.placeholder = wed ? "Ce qui compte pour vous, l'ambiance de la journée, vos questions" : "Le lieu, le nombre de personnes, ce qui compte pour vous";
+}
+function contactFormulas() {
+  const sel = $("ct-formula"), keep = sel.value;
+  const wedPrices = SITE.prices.filter((p) => /mariage/i.test(p.name));
+  sel.innerHTML = '<option value="">Je ne sais pas encore</option>' + (wedPrices.length ? wedPrices : SITE.prices).map((p) => '<option value="' + esc(p.name + " (" + euro(p.price) + ")") + '">' + esc(p.name) + " · " + esc(euro(p.price)) + "</option>").join("");
+  sel.value = keep;
+}
+$("ct-form").addEventListener("change", (e) => { if (e.target.name === "kind") contactKind(); });
+contactKind();
 $("ct-form").addEventListener("input", (e) => { if (e.target.getAttribute("aria-invalid")) e.target.removeAttribute("aria-invalid"); });
 
 // ------------------------------------------------------------------ référencement
@@ -280,15 +305,8 @@ function seo() {
   setMeta("name", "description", SITE.seoDesc);
   setMeta("property", "og:title", SITE.seoTitle);
   setMeta("property", "og:description", SITE.seoDesc);
-  const ps = SITE.prices.map((x) => x.price).filter(Boolean);
-  const ld = {
-    "@context": "https://schema.org", "@type": "ProfessionalService", name: "lau.rie",
-    description: SITE.seoDesc, url: "https://lau-rie.fr/", email: SITE.mail, image: "https://lau-rie.fr/partage.jpg",
-    address: { "@type": "PostalAddress", addressLocality: SITE.city, addressCountry: "FR" },
-    areaServed: String(SITE.area).split(/\s*,\s*/).filter(Boolean), sameAs: [SITE.ig],
-    priceRange: ps.length ? Math.min(...ps) + " € – " + Math.max(...ps) + " €" : undefined,
-    makesOffer: SITE.prices.map((x) => ({ "@type": "Offer", name: x.name, description: x.detail, price: x.price, priceCurrency: "EUR" })),
-  };
+  const canon = document.querySelector('link[rel="canonical"]');
+  const ld = businessLd(SITE, canon ? canon.href : location.origin);
   $("ld").textContent = JSON.stringify(ld);
 }
 
@@ -327,11 +345,12 @@ $("lg-toc").addEventListener("click", (e) => {
 
 // ------------------------------------------------------------------ textes
 function applySite() {
+  $("kicker").textContent = SITE.kicker || ""; $("kicker").hidden = !SITE.kicker;
   $("h1a").textContent = SITE.t1; $("h1b").textContent = SITE.t2; $("lede").textContent = SITE.lede;
   document.querySelectorAll("[data-mail]").forEach((a) => { a.href = "mailto:" + SITE.mail; a.textContent = SITE.mail; });
   document.querySelectorAll("[data-mail-only]").forEach((a) => { a.href = "mailto:" + SITE.mail; });
   document.querySelectorAll("[data-ig]").forEach((a) => { a.href = SITE.ig; });
-  fillSlots(); drawWorks(); drawRun(); drawPrices(); drawReview(false); seo();
+  fillSlots(); drawWorks(); drawRun(); drawPrices(); drawReview(false); seo(); contactFormulas();
 }
 
 // ------------------------------------------------------------------ vues
@@ -362,11 +381,64 @@ function route() {
     play();
   }
 }
-window.addEventListener("hashchange", route);
+// ------------------------------------------------------------------ transition fluide accueil ↔ séance
+// La photo cliquée s'agrandit jusqu'à devenir celle du haut de la séance (navigateurs récents ;
+// ailleurs, ou si l'on préfère moins d'animations, la navigation reste instantanée).
+const VT = "st-hero";
+const quietVT = (vt) => { if (vt) ["ready", "finished", "updateCallbackDone"].forEach((k) => vt[k] && vt[k].catch(() => {})); };
+function vtName(el) {
+  document.querySelectorAll("[data-vt]").forEach((x) => { x.style.viewTransitionName = ""; x.removeAttribute("data-vt"); });
+  if (el) { el.style.viewTransitionName = VT; el.dataset.vt = "1"; }
+}
+const cardImg = (pred) => { const a = [...document.querySelectorAll("#works a.work")].find(pred); return a ? a.querySelector("img") : null; };
+let lastStory = null;
+$("works").addEventListener("click", (e) => { const a = e.target.closest("a.work"); if (a) vtName(a.querySelector("img")); });
+function routeVT() {
+  const fromStory = !$("v-story").hidden ? lastStory : null;
+  const run = () => {
+    route();
+    const h = decodeURIComponent(location.hash.replace("#", ""));
+    if (h.startsWith("seance-")) { vtName(null); lastStory = h.slice(7); }
+    else if (fromStory && !$("v-home").hidden) { vtName(cardImg((a) => a.dataset.story === fromStory || a.getAttribute("href").endsWith("#seance-" + fromStory))); lastStory = null; }
+  };
+  if (reduce || !document.startViewTransition) { run(); return; }
+  const vt = document.startViewTransition(run), done = () => vtName(null);
+  quietVT(vt); // transition interrompue : la page change quand même, sans animation
+  vt.finished.then(done, done);
+}
+window.addEventListener("hashchange", routeVT);
+// Vers une vraie page de séance (autre document) : même effet, si le navigateur le permet
+window.addEventListener("pageswap", (e) => {
+  quietVT(e.viewTransition); // page sans transition à l'arrivée : abandon silencieux
+  const to = e.viewTransition && e.activation && e.activation.entry && e.activation.entry.url;
+  if (to) vtName(cardImg((a) => a.href === to));
+});
+window.addEventListener("pagereveal", (e) => {
+  if (!e.viewTransition) return;
+  const done = () => vtName(null);
+  quietVT(e.viewTransition);
+  e.viewTransition.finished.then(done, done);
+});
 document.querySelectorAll("[data-top]").forEach((b) => b.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" })));
 
 initTypo();
-function start() { applySite(); route(); reveal(); }
+// Aperçu demandé depuis l'espace photographe : le brouillon n'existe que dans ce navigateur (2 h)
+const PREVIEW = (() => {
+  if (!new URLSearchParams(location.search).has("apercu")) return null;
+  try { const p = JSON.parse(localStorage.getItem("lr-preview") || "null"); return p && Date.now() - p.at < 2 * 36e5 ? p.content : null; } catch { return null; }
+})();
+function previewBanner() {
+  const b = document.createElement("div");
+  b.className = "preview-bar"; b.setAttribute("role", "status");
+  b.innerHTML = "<span><b>Aperçu</b> : rien n'est encore enregistré. Les visiteurs voient toujours l'ancienne version.</span><button type=\"button\">Fermer l'aperçu</button>";
+  b.querySelector("button").onclick = () => { try { localStorage.removeItem("lr-preview"); } catch { /* rien */ } window.close(); location.replace("index.html"); };
+  document.body.appendChild(b);
+}
+function start() {
+  if (PREVIEW) { SITE = mergeSite(PREVIEW); legal = makeLegal(SITE); previewBanner(); }
+  applySite(); route(); reveal();
+  { const h0 = decodeURIComponent(location.hash.replace("#", "")); if (h0.startsWith("seance-")) lastStory = h0.slice(7); }
+}
 if (DEMO) start();
 else {
   // Le contenu enregistré par la photographe arrive avant le premier affichage

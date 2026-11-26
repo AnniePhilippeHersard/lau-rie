@@ -62,19 +62,22 @@ Ce guide installe le site **sur tes propres comptes**. Tu en es propriétaire : 
 
 ## Étape 3 — Créer la base de données
 
-Tu vas coller quatre « recettes » qui créent les tables et les règles de sécurité, **dans l'ordre**.
+Tu vas coller sept « recettes » qui créent les tables et les règles de sécurité, **dans l'ordre**.
 
-1. Dans un autre onglet, ouvre ton dépôt GitHub → dossier **`supabase`** → **`migrations`**. Il contient quatre fichiers, du plus ancien au plus récent :
+1. Dans un autre onglet, ouvre ton dépôt GitHub → dossier **`supabase`** → **`migrations`**. Il contient sept fichiers, du plus ancien au plus récent :
    1. `…_init.sql`
    2. `…_site_settings.sql`
    3. `…_lau_rie.sql`
    4. `…_envoi_favorites.sql`
+   5. `…_droits_api.sql`
+   6. `…_agenda_historique_corbeille.sql`
+   7. `…_miniatures_stockage_devis.sql`
 2. Clique sur le **premier**, puis sur l'icône **Copy raw file** (deux petits carrés, en haut à droite du contenu).
 3. Dans Supabase, menu de gauche : **SQL Editor** → **New query** (ou **+**).
 4. Colle (Ctrl+V / Cmd+V) puis **Run** (en bas à droite). ✅ Message **Success. No rows returned**.
-5. Recommence avec le **deuxième**, le **troisième** puis le **quatrième** fichier : nouvelle requête, coller, **Run**.
+5. Recommence avec les fichiers suivants, **un par un et dans l'ordre** : nouvelle requête, coller, **Run**.
 
-> ℹ️ **Site déjà en ligne avant cette version ?** Exécute seulement le quatrième fichier (`…_envoi_favorites.sql`), puis redéploie les fonctions `gallery` et `admin-users` (étape 4). Tant qu'il n'est pas exécuté, le site marche normalement, sans « Les plus aimées » ni date d'envoi du lien.
+> ℹ️ **Site déjà en ligne avant cette version ?** Exécute seulement les fichiers que tu n'as pas encore passés (l'écran **Santé du site** de l'espace photographe te dit lequel manque), puis redéploie les fonctions `gallery`, `admin-users` et `reminders` (étape 4). Tant qu'il n'est pas exécuté, le site marche normalement, sans « Les plus aimées » ni date d'envoi du lien.
 
 > ℹ️ Avec le troisième fichier, une ligne jaune « pg_cron indisponible » peut apparaître : ce n'est pas une erreur. Le site fonctionne, seule la purge automatique des adresses IP n'est pas programmée (voir « Bon à savoir »).
 
@@ -121,7 +124,7 @@ Pour que personne ne puisse se créer un compte tout seul : **Authentication** �
 ## Étape 6 — Relier le site à Supabase
 
 1. Dans Supabase : **Project Settings** (roue crantée en bas à gauche) → **API Keys** (ou **API**). Tu vas copier deux valeurs :
-   - la **Project URL** (du type `https://abcdefgh.supabase.co`), parfois affichée dans **Project Settings → Data API** ou sur l'accueil du projet ;
+   - la **Project URL** (du type `https://abcdefgh.supabase.co`), parfois affichée dans **Project Settings → Data API** ou sur l'accueil du projet. Si Supabase l'affiche avec `/rest/v1/` à la fin, enlève cette fin ;
    - la **clé publique** : **Publishable key** (commence par `sb_publishable_`) *ou*, dans **Legacy API keys**, la clé **anon public**.
    > ⚠️ Ne copie **jamais** la clé `secret` ou `service_role` : elle donne tous les droits.
 2. Sur GitHub, ouvre `assets` → `js` → **`config.js`** → crayon ✏️ (**Edit this file**).
@@ -139,6 +142,7 @@ Pour que personne ne puisse se créer un compte tout seul : **Authentication** �
 1. Dans ton dépôt GitHub : **Settings** → **Pages** (menu de gauche).
 2. **Source** : choisis **GitHub Actions** (pas « Deploy from a branch »). Rien d'autre à régler sur cette page.
 3. Onglet **Actions** du dépôt → **Publier le site** (à gauche) → **Run workflow** → **Run workflow**. Une ligne jaune apparaît, puis une coche verte au bout d'une minute environ.
+   *« Publier le site » n'apparaît pas dans **Actions** ?* Le dossier caché `.github` n'a pas été envoyé à l'étape 1.3. Dans le dépôt : **Add file** → **Create new file**, nom : `.github/workflows/site.yml` (les `/` créent les dossiers), colle le contenu du fichier `site.yml` du zip (dans `.github/workflows`, Cmd + Maj + . pour le voir), puis **Commit changes**. La publication démarre toute seule.
 4. Retourne dans **Settings** → **Pages** : l'adresse s'affiche en haut, du type **`https://laurie-photo.github.io/site/`**. Note-la.
 
 *Ensuite, tout est automatique : le site est republié à chaque modification du dépôt, et chaque nuit pour créer la page Google des séances que tu ajoutes depuis l'espace photographe (elles s'affichent sur le site tout de suite ; leur page séparée pour Google arrive la nuit suivante). Pour la créer sans attendre : **Actions** → **Publier le site** → **Run workflow**.*
@@ -166,12 +170,12 @@ Pour que personne ne puisse se créer un compte tout seul : **Authentication** �
 1. Va sur **l'adresse du site + `admin.html`**, par exemple `https://laurie-photo.github.io/site/admin.html`, et ajoute-la à tes favoris. *Le lien « Espace photographe » en bas du site y mène aussi.*
 2. Connecte-toi avec l'e-mail et le mot de passe de l'étape 5.
 3. L'écran **À faire** liste ce qu'il reste à compléter. Dans l'ordre :
-   1. **Réglages → Informations légales** : nom, statut, SIRET, adresse, téléphone, médiateur (voir étape 14). Ces informations remplissent toutes seules les mentions légales, la confidentialité et les conditions de prestation.
-   2. **Portfolio → Bibliothèque** : ajoute tes plus belles photos, **seulement celles dont les personnes ont donné leur accord écrit**. Donne une courte description à chacune (elle aide Google et les personnes malvoyantes).
-   3. **Portfolio → Séances** : crée tes vraies séances (titre, lieu, texte, photos). Décoche **Affichée** sur les séances d'exemple, ou supprime-les.
-   4. **Portfolio → Photos de l'accueil** : choisis une photo pour chaque emplacement (le grand tirage, les petits, « À propos », « Contact »…).
-   5. **Site et Google** : vérifie l'accroche, les tarifs, ton e-mail, ton Instagram.
-   6. **Réglages → Équipe** : ajoute une **deuxième personne de confiance**. Si un jour tu oublies ton mot de passe, elle t'en redonne un en deux clics (et inversement).
+   1. **Mon entreprise → Informations légales** : nom, statut, SIRET, adresse, téléphone, médiateur (voir étape 14). Ces informations remplissent toutes seules les mentions légales, la confidentialité et les conditions de prestation.
+   2. **Photos du site → Bibliothèque** : ajoute tes plus belles photos, **seulement celles dont les personnes ont donné leur accord écrit**. Donne une courte description à chacune (elle aide Google et les personnes malvoyantes).
+   3. **Photos du site → Séances** : crée tes vraies séances (titre, lieu, texte, photos). Décoche **Affichée** sur les séances d'exemple, ou supprime-les.
+   4. **Photos du site → Photos de l'accueil** : choisis une photo pour chaque emplacement (le grand tirage, les petits, « À propos », « Contact »…).
+   5. **Textes et tarifs** : vérifie l'accroche, les tarifs, ton e-mail, ton Instagram.
+   6. **Compte et sécurité → Équipe** : ajoute une **deuxième personne de confiance**. Si un jour tu oublies ton mot de passe, elle t'en redonne un en deux clics (et inversement).
 
 > ⚠️ Tant que l'écran **À faire** affiche « Photos et séances d'exemple encore sur le site », ne communique pas l'adresse : les photos d'exemple (Unsplash) ne sont pas les tiennes.
 
@@ -212,7 +216,7 @@ Pour écrire à tes clients (rappels, et bouton **Envoyer par e-mail** d'une gal
    ```
 5. **Run**. ✅ Un numéro s'affiche. Chaque matin, la fonction écrit aux clients dont la galerie ferme bientôt (un mois avant par défaut, réglable galerie par galerie).
 
-Le texte du rappel se modifie dans **Réglages → E-mail de rappel**.
+Le texte du rappel se modifie dans **Mon entreprise → E-mail de rappel**.
 
 ✅ Le bouton **Envoyer par e-mail** d'une galerie fonctionne aussi à partir de maintenant : il écrit à l'adresse **E-mail des clients** de la galerie, avec un message que tu relis avant l'envoi. Les réponses des clients arrivent sur l'e-mail du site (**Site et Google → Contact**).
 
@@ -240,6 +244,8 @@ Le texte du rappel se modifie dans **Réglages → E-mail de rappel**.
 1. **Google Search Console** (https://search.google.com/search-console) → **Ajouter une propriété** → **Domaine** → `lau-rie.fr`. Google donne une ligne **TXT** à ajouter dans la zone DNS (comme à l'étape 11), puis **Valider**.
 2. Menu **Sitemaps** → saisis `sitemap.xml` → **Envoyer**.
 3. Conseillé : crée ta fiche **Google Business Profile** (https://business.google.com) en « zone desservie » (Nantes, Saumur, Angers…) sans afficher ton adresse personnelle. C'est elle qui apparaît sur Google Maps et dans « photographe mariage Nantes ».
+4. Dans l'espace photographe, **Textes et tarifs** → **Contact** : colle le **lien pour laisser un avis Google** (fiche Google Business → « Demander des avis ») et le **lien de tes avis** (bouton « Partager » de ta fiche sur Google Maps). Le premier est proposé à tes clients dans leur galerie, le second s'affiche sous les avis de l'accueil.
+5. Lis **REFERENCEMENT-LOCAL.md** (dans le dossier du site) : la liste des actions gratuites qui font monter le site sur Google.
 
 Les galeries privées et l'espace photographe sont exclus de Google automatiquement.
 
@@ -262,8 +268,8 @@ Avant d'envoyer une vraie galerie, joue la cliente :
 
 ## Étape 14 — Les obligations légales (à faire avant la première séance vendue)
 
-- [ ] **SIRET et statut** saisis dans **Réglages → Informations légales**.
-- [ ] **Médiateur de la consommation** : obligatoire dès qu'on vend à des particuliers. Adhère à un médiateur agréé (liste officielle sur https://www.economie.gouv.fr/mediation-conso), puis saisis son nom et son site dans les Réglages. Compte quelques dizaines d'euros par an selon l'organisme.
+- [ ] **SIRET et statut** saisis dans **Mon entreprise → Informations légales**.
+- [ ] **Médiateur de la consommation** : obligatoire dès qu'on vend à des particuliers. Adhère à un médiateur agréé (liste officielle sur https://www.economie.gouv.fr/mediation-conso), puis saisis son nom et son site dans **Mon entreprise**. Compte quelques dizaines d'euros par an selon l'organisme.
 - [ ] **Relecture** des trois pages (mentions légales, confidentialité, conditions de prestation) par la CCI, la Chambre des métiers ou un juriste. Elles sont rédigées pour une micro-entreprise de photographie, mais une relecture une fois pour toutes est prudente.
 - [ ] **Devis** : joins-y les conditions de prestation (lien `…/index.html#conditions`) et fais-les accepter à la signature.
 - [ ] **Droit à l'image** : ne publie dans le portfolio que les photos pour lesquelles tu as un accord écrit.
@@ -275,14 +281,35 @@ Avant d'envoyer une vraie galerie, joue la cliente :
 
 1. **Après une séance** : **Galeries** → **Nouvelle galerie**. Les codes sont créés tout seuls.
 2. **Importer** les JPEG exportés de Lightroom. Le site fait des aperçus légers ; tes originaux ne quittent pas ton ordinateur. Option : « © lau.rie » sur les aperçus.
-3. **Mettre en ligne** (Galerie visible), puis **Envoyer par e-mail** (après l'étape 10.2), **Copier le message** pour un SMS, ou **Créer la carte à imprimer** (QR code, 10 × 15 cm).
+3. **Mettre en ligne** (Galerie visible), puis **Envoyer par e-mail** (après l'étape 10.2), **Copier le message** pour un SMS, ou, dans **Plus d'options**, **Créer la carte à imprimer** (QR code, 10 × 15 cm). Ce même bloc replié règle la sélection des clients et le rappel avant fermeture.
 4. Les clients choisissent leurs favorites (limite réglable), ajoutent des notes, partagent avec leurs proches grâce au code des invités.
-5. **Sélections** : **Copier les noms**, colle-les dans la recherche de Lightroom pour retrouver les photos. Retouche, puis **Marquer comme traitée**.
+5. **Sélection reçue** : ouvre la galerie (le chiffre sur **Galeries** te prévient), encadré en haut : **Copier les noms**, colle-les dans la recherche de Lightroom pour retrouver les photos. Retouche, puis **Marquer comme traitée**.
 6. **Livraison HD** : dépose les fichiers retouchés sur **https://www.swisstransfer.com** (lien valable 30 jours maximum), colle le lien dans **Fichiers HD** avec sa date d'expiration, **Enregistrer**. Les clients le trouvent dans **Télécharger**.
 7. **Les plus aimées** : dans chaque galerie, les photos qui ont reçu le plus de cœurs (clients et invités, comptés sans savoir qui). Pratique pour choisir les photos du portfolio, avec l'accord des clients.
-8. **Demandes** : **Répondre** propose des réponses toutes prêtes (disponible, déjà réservée, tarifs) avec le prénom et tes formules déjà remplis. **Ouvrir dans ma messagerie**, ou **Copier le message** si tu écris depuis Gmail dans le navigateur. Les textes se modifient dans **Réglages → Réponses aux demandes**.
+8. **Demandes** : **Répondre** propose des réponses toutes prêtes (disponible, déjà réservée, tarifs) avec le prénom et tes formules déjà remplis. **Ouvrir dans ma messagerie**, ou **Copier le message** si tu écris depuis Gmail dans le navigateur. Les textes se modifient dans **Mon entreprise → Réponses aux demandes**.
 9. **Avis** : quand un client en laisse un, il attend ta relecture dans **Avis** (**Publier** ou **Ne pas publier**). Les messages « juste pour Laurie » ne sont jamais publiés.
-10. **Fin de galerie** : un rappel part avant la fermeture (étape 10). Après la date, le code ne fonctionne plus. Supprime les vieilles galeries pour garder de la place.
+10. **Fin de galerie** : un rappel part avant la fermeture (étape 10). Après la date, le code ne fonctionne plus. Supprime les vieilles galeries pour garder de la place : elles passent 30 jours dans la **Corbeille** (Galeries → Corbeille) avant de disparaître.
+11. **Agenda** : chaque séance réservée (bouton **Ajouter à l'agenda** sur une demande, ou **Nouvelle séance**). **Ajouter à mon calendrier** l'envoie dans le calendrier du téléphone. Le lendemain de la séance, **À faire** propose de **Créer la galerie**, avec le nom et l'e-mail déjà remplis.
+12. **Importer depuis Lightroom** : glisse directement le dossier exporté. Si la connexion coupe, relance le même import : les photos déjà envoyées sont ignorées.
+13. **Ranger** : la petite poignée ⠿ sur une photo ou une séance se fait glisser (ou flèches du clavier). **Point important** (◎) : touche le visage, le recadrage du site ne le coupera jamais.
+14. **Une erreur sur le site ?** **Textes et tarifs** → **Annuler la dernière modification**, ou **Compte et sécurité** → **Historique du site** pour revenir plus loin. **Aperçu avant d'enregistrer** montre le résultat avant de valider.
+15. **Chaque mois** : **Compte et sécurité** → **Sauvegarde** → **Télécharger**, et range le fichier sur l'ordinateur. **À faire** le rappelle. Un coup d'œil à **Santé du site** (en haut de **À faire**) dit si tout va bien.
+16. **Galeries plus légères** : chaque photo importée a maintenant une miniature (la grille s'ouvre vite, même en 4G). Pour une galerie importée avant, un encadré propose **Alléger la galerie** : un clic suffit. Même chose dans **Photos du site** avec **Créer les vignettes**.
+17. **Espace de stockage** : **Compte et sécurité** → **Espace de stockage** montre la place utilisée (l'offre gratuite de Supabase compte environ 1 Go, soit 4 à 5 mariages). Les aperçus des galeries fermées sont supprimés automatiquement après le délai choisi (3 mois par défaut) ; la fiche, la sélection et les notes restent. Pour rouvrir une galerie archivée : prolonge la date **En ligne jusqu'au**, puis réimporte le même dossier depuis Lightroom, chaque photo retrouve sa place.
+18. **Devis** : dans **Demandes**, **Faire un devis** reprend le nom, la date, le lieu et la formule demandés. Ajoute des lignes si besoin, **Enregistrer le devis** (numéro D-2026-001, D-2026-002…), puis **Voir et télécharger (PDF)** → **Télécharger en PDF** → « Enregistrer au format PDF ». Le devis reprend tes informations de **Mon entreprise** (SIRET, adresse, médiateur) : complète-les avant le premier envoi. Change le **Statut** (envoyé, accepté) pour t'y retrouver.
+---
+
+## Sauvegarde automatique (facultatif, à faire faire par quelqu'un d'à l'aise)
+
+En plus de la sauvegarde téléchargée à la main, une copie **chiffrée** de la base peut être faite automatiquement le 1er de chaque mois.
+
+1. Supabase → **Project Settings** → **API Keys** : copie la clé **secret** (ou `service_role`). Ne la colle **nulle part ailleurs** qu'à l'étape suivante.
+2. GitHub → ton dépôt → **Settings** → **Secrets and variables** → **Actions** → **New repository secret** :
+   - **Name** : `SUPABASE_SERVICE_ROLE_KEY`, **Secret** : la clé copiée ;
+   - puis un second : **Name** : `BACKUP_PASSPHRASE`, **Secret** : une longue phrase inventée. **Note-la dans ton gestionnaire de mots de passe** : sans elle, la sauvegarde est illisible.
+3. **Actions** → **Sauvegarde mensuelle** → **Run workflow** pour tester. ✅ Coche verte, et un fichier `sauvegarde-chiffree` dans la ligne de l'exécution (gardé 90 jours).
+
+Pour relire une sauvegarde chiffrée : `openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in sauvegarde-AAAA-MM-JJ.json.enc -out sauvegarde.json` (la phrase est demandée).
 
 ---
 
@@ -292,7 +319,7 @@ Avant d'envoyer une vraie galerie, joue la cliente :
 - **Pause automatique** : un projet Supabase gratuit se met en pause après **7 jours sans aucune activité** (tu reçois un e-mail avant). Le site public reste visible, mais les galeries, le contact et l'espace photographe ne répondent plus : va sur supabase.com et clique sur **Restore project**. Avec des visites régulières, ça n'arrive pas.
 - **Espace** : la formule gratuite (1 Go) contient environ 2 000 à 3 000 aperçus de galerie. Supprime les galeries livrées et fermées. Les fichiers HD ne passent jamais par le site.
 - **Purge des adresses IP** : pour bloquer ceux qui essaient de deviner les codes, le site note l'adresse IP de chaque essai. Elle est effacée chaque nuit si `pg_cron` est activé (**Database → Extensions → pg_cron**, puis relance le 3e fichier de l'étape 3).
-- **Mot de passe oublié** : demande à l'autre administratrice un mot de passe provisoire (**Réglages → Équipe → Nouveau mot de passe**). Le lien « Mot de passe oublié » par e-mail ne fonctionne bien qu'avec un service d'envoi branché (Supabase → **Authentication** → **Emails** → **SMTP Settings**, avec Resend : hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = ta clé API, expéditeur sur ton domaine vérifié).
+- **Mot de passe oublié** : demande à l'autre administratrice un mot de passe provisoire (**Compte et sécurité → Équipe → Nouveau mot de passe**). Le lien « Mot de passe oublié » par e-mail ne fonctionne bien qu'avec un service d'envoi branché (Supabase → **Authentication** → **Emails** → **SMTP Settings**, avec Resend : hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = ta clé API, expéditeur sur ton domaine vérifié).
 - **Mode démonstration** : tant que `config.js` est vide, le site affiche les exemples, la galerie d'exemple s'ouvre avec le code `LT-2026` (clients) ou `LT-INVITES` (invités), et l'espace photographe explique qu'il faut relier Supabase.
 - **Donner accès à la personne qui t'aide** : GitHub → ton dépôt → **Settings** → **Collaborators** → **Add people**. Pour Supabase (si nécessaire) : **Organization settings** → **Team** → **Invite**, rôle **Developer**. Tu restes propriétaire de tout et tu peux retirer l'accès quand tu veux.
 
@@ -313,6 +340,7 @@ Avant d'envoyer une vraie galerie, joue la cliente :
 | Ajouter une administratrice affiche une erreur | Fonction `admin-users` absente ou Verify JWT activé | Étape 4 |
 | Pas d'e-mail de sélection ou de contact | Étape 10.1 pas faite, ou `NOTIFY_EMAIL` différent de ton compte Resend | Étape 10.1 |
 | Les rappels ne partent pas | Domaine pas vérifié chez Resend, secret ou tâche planifiée manquants | Étape 10.2 ; en attendant, bouton **L'envoyer moi-même** |
+| Actions : « Supabase a répondu 404 pour site_settings » | Fichiers SQL de l'étape 3 pas tous exécutés, ou API Supabase qui ne voit pas encore les tables | **Table Editor** : `site_settings` doit exister ; sinon étape 3. Si elle existe : exécuter le 5ᵉ fichier (`…_droits_api.sql`), puis **Actions → Run workflow** |
 | Plus rien ne marche d'un coup | Projet Supabase en pause | supabase.com → **Restore project** |
 | Le site n'a pas changé après une modification sur GitHub | Délai de publication, ou publication en échec | Onglet **Actions** : attendre la coche verte, puis recharger (Ctrl+Maj+R). Croix rouge : ouvrir la ligne pour lire l'erreur (souvent un projet Supabase en pause) |
 | E-mail de GitHub « scheduled workflow disabled » | Aucune modification du dépôt pendant 60 jours | **Actions** → **Publier le site** → **Enable workflow**. Le site reste en ligne en attendant |

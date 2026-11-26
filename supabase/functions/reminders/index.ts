@@ -37,13 +37,15 @@ Deno.serve(async (req) => {
   const given = req.headers.get("x-cron-secret") ?? "";
   if (secret.length < 16 || !safeEqual(given, secret)) return json({ error: "Accès refusé" }, 401);
 
-  const key = Deno.env.get("RESEND_API_KEY");
-  const from = Deno.env.get("REMIND_FROM");
-  if (!key || !from) return json({ error: "RESEND_API_KEY et REMIND_FROM sont nécessaires" }, 503);
-  const site = (Deno.env.get("SITE_URL") ?? "").replace(/\/$/, "");
-
   const { data: settings } = await supabase.from("site_settings").select("content").eq("id", 1).maybeSingle();
   const c = (settings?.content ?? {}) as Record<string, string>;
+  // Ménage, même sans e-mails branchés : aperçus des galeries fermées depuis longtemps
+  const archived = await purgeOld(c);
+
+  const key = Deno.env.get("RESEND_API_KEY");
+  const from = Deno.env.get("REMIND_FROM");
+  if (!key || !from) return json({ error: "RESEND_API_KEY et REMIND_FROM sont nécessaires", archived }, 503);
+  const site = (Deno.env.get("SITE_URL") ?? "").replace(/\/$/, "");
   const subjTpl = c.mailSubj || DEFAULT_SUBJ;
   const bodyTpl = c.mailBody || DEFAULT_BODY;
 
@@ -76,10 +78,10 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from,
         to: g.client_email,
-        subject: fill(subjTpl),
+        subject: fill(subjTpl).replace(/[\r\n\t]+/g, " "),
         text: fill(bodyTpl),
         html: `<div style="font-family:Georgia,serif;font-size:16px;line-height:1.6;color:#1B1A17">${esc(fill(bodyTpl)).replace(/\n/g, "<br>")}</div>`,
-        ...(c.mail ? { reply_to: c.mail } : {}),
+        ...(c.mail && /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/.test(c.mail) ? { reply_to: c.mail } : {}),
       }),
     });
     if (!res.ok) {
@@ -90,5 +92,33 @@ Deno.serve(async (req) => {
     await supabase.from("galleries").update({ reminded_at: now.toISOString() }).eq("id", g.id);
     sent++;
   }
-  return json({ ok: true, sent, failed });
+  return json({ ok: true, sent, failed, archived });
 });
+
+// Galeries fermées depuis plus de « purgeMonths » mois (réglage de l'espace photographe,
+// 3 par défaut, 0 = jamais) : aperçus et miniatures supprimés, la fiche reste (archived_at).
+// La photographe peut rouvrir la galerie en réimportant le même dossier depuis Lightroom.
+async function purgeOld(c: Record<string, unknown>) {
+  const months = c.purgeMonths == null || c.purgeMonths === "" ? 3 : Number(c.purgeMonths);
+  if (!Number.isFinite(months) || months <= 0) return 0;
+  const limit = new Date();
+  limit.setMonth(limit.getMonth() - months);
+  const { data: gs, error } = await supabase.from("galleries").select("id")
+    .is("archived_at", null).not("expires_at", "is", null).lt("expires_at", limit.toISOString()).limit(20);
+  if (error) return 0; // 7e migration pas encore exécutée
+  let n = 0;
+  for (const g of gs ?? []) {
+    const { data: ph, error: pe } = await supabase.from("photos").select("preview_path, thumb_path").eq("gallery_id", g.id);
+    if (pe) continue;
+    const files = (ph ?? []).flatMap((p) => [p.preview_path, p.thumb_path]).filter(Boolean) as string[];
+    let ok = true;
+    for (let i = 0; i < files.length && ok; i += 100) {
+      const { error: re } = await supabase.storage.from("galleries").remove(files.slice(i, i + 100));
+      if (re) { ok = false; console.error("ménage", g.id, re.message); }
+    }
+    if (!ok) continue;
+    await supabase.from("galleries").update({ archived_at: new Date().toISOString() }).eq("id", g.id);
+    n++;
+  }
+  return n;
+}
