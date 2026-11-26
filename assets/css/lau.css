@@ -919,3 +919,7 @@ body.has-dirty .a-main { padding-bottom: 96px; }
 .a-qchip { border: 1px solid #CFC8BA; background: #FAF8F4; border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer; min-height: 32px; }
 .a-qchip:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 @media (max-width: 600px) { .a-qnum { grid-template-columns: 1fr 1fr; } .a-qamt { grid-column: 1 / -1; justify-items: start; } }
+
+/* Tarifs : collés aux avis quand ils sont affichés ; sans avis publiés, la section garde sa marge */
+#tarifs { padding-top: 0; }
+#avis[hidden] + #tarifs { padding-top: clamp(96px, 9vw, 150px); }
