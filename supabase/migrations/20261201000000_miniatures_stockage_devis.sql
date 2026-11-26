@@ -14,6 +14,7 @@ alter table public.portfolio add column if not exists thumb_width int;
 -- Galerie fermée depuis longtemps : ses aperçus sont supprimés pour libérer
 -- de la place (la fiche, les noms de fichiers et la sélection restent)
 alter table public.galleries add column if not exists archived_at timestamptz;
+grant select (archived_at) on public.galleries to authenticated;  -- lecture des galeries : colonne par colonne
 
 -- ---------------------------------------------------------------------
 --  Espace de stockage utilisé, par dossier (administratrices seulement)
@@ -56,5 +57,8 @@ create policy quotes_admin on public.quotes
   for all to authenticated using (public.is_admin()) with check (public.is_admin());
 grant select, insert, update, delete on public.quotes to authenticated;
 grant all on public.quotes to service_role;
+
+-- Fonction du déclencheur d'historique : jamais appelée par le site, pas exposée à l'API
+revoke execute on function public.site_settings_keep_history() from public, anon, authenticated;
 
 notify pgrst, 'reload schema';
