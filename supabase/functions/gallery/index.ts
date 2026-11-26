@@ -377,7 +377,7 @@ async function notify(subject: string, html: string, replyTo?: string) {
   const to = Deno.env.get("NOTIFY_EMAIL");
   if (!key || !to) return;
   try {
-    await fetch("https://api.resend.com/emails", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -388,6 +388,8 @@ async function notify(subject: string, html: string, replyTo?: string) {
         ...(replyTo ? { reply_to: replyTo } : {}),
       }),
     });
+    // Refus de Resend (clé d'un autre compte, domaine non vérifié…) : visible dans les journaux
+    if (!res.ok) console.error("notification refusée", res.status, (await res.text().catch(() => "")).slice(0, 300));
   } catch (e) {
     console.error("notification", e);
   }
