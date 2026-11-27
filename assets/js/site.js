@@ -298,6 +298,20 @@ function contactFormulas() {
 $("ct-form").addEventListener("change", (e) => { if (e.target.name === "kind") contactKind(); });
 contactKind();
 $("ct-form").addEventListener("input", (e) => { if (e.target.getAttribute("aria-invalid")) e.target.removeAttribute("aria-invalid"); });
+// E-mail : le message d'erreur n'est relié au champ (lecteurs d'écran) que lorsqu'il est affiché,
+// c'est-à-dire après saisie, quand le navigateur juge l'adresse invalide (:user-invalid)
+if (window.CSS && CSS.supports("selector(:user-invalid)")) {
+  const em = $("ct-email"), ERR = "ct-email-err";
+  const link = () => {
+    const bad = em.matches(":user-invalid");
+    const ids = (em.getAttribute("aria-describedby") || "").split(/\s+/).filter((x) => x && x !== ERR);
+    if (bad) ids.push(ERR);
+    if (ids.length) em.setAttribute("aria-describedby", ids.join(" ")); else em.removeAttribute("aria-describedby");
+    em.setAttribute("aria-invalid", String(bad));
+  };
+  em.addEventListener("blur", link);
+  em.addEventListener("input", () => { if (em.getAttribute("aria-invalid") === "true") link(); });
+}
 
 // ------------------------------------------------------------------ référencement
 function seo() {

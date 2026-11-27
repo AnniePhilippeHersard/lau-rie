@@ -924,3 +924,14 @@ body.has-dirty .a-main { padding-bottom: 96px; }
 /* Tarifs : collés aux avis quand ils sont affichés ; sans avis publiés, la section garde sa marge */
 #tarifs { padding-top: 0; }
 #avis[hidden] + #tarifs { padding-top: clamp(96px, 9vw, 150px); }
+
+/* Mise en page du texte : titres équilibrés, paragraphes sans mot orphelin (ignoré si non pris en charge) */
+h1, h2, h3, .lede, .st-meta, legend { text-wrap: balance; }
+p, li, blockquote, figcaption, .st-lede { text-wrap: pretty; }
+
+/* Formulaire de contact : l'erreur n'apparaît qu'après saisie (champ quitté), jamais pendant la frappe */
+.f-err { display: none; margin-top: 6px; font-size: var(--t-small); color: #8A2B1F; }
+.f-err::before { content: "Erreur : "; font-weight: 500; }
+.ct-form .field :is(input, textarea, select):user-invalid { border-color: #8A2B1F; box-shadow: 0 0 0 1px #8A2B1F; }
+.ct-form .field:has(:user-invalid) .f-err { display: block; }
+.ct-form .ct-two { align-items: start; } /* le message sous un champ ne décale pas le champ voisin */

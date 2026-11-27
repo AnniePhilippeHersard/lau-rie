@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; worker-src 'self' blob:">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'inline-speculation-rules'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; worker-src 'self' blob:">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Photographe mariage et famille Saumur, Angers, Nantes</title>
 <meta name="description" content="Photographe de mariage et de famille entre Saumur, Angers et Nantes : reportage en lumière naturelle et galerie privée en ligne, en Anjou et Loire-Atlantique.">
@@ -19,6 +19,15 @@
 <link rel="stylesheet" href="assets/css/lau.css">
 <link rel="stylesheet" href="assets/css/vt.css">
 <script src="assets/js/vt.js"></script>
+<script type="speculationrules">
+{
+  "prerender": [{
+    "tag": "seances",
+    "where": { "or": [ { "href_matches": "seance-*" }, { "href_matches": "index.html" } ] },
+    "eagerness": "moderate"
+  }]
+}
+</script>
 <link rel="canonical" href="https://lau-rie.fr/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
@@ -166,7 +175,7 @@
           </fieldset>
           <div class="ct-two">
             <div class="field"><label for="ct-name">Votre prénom</label><input id="ct-name" name="name" autocomplete="given-name" maxlength="120" required></div>
-            <div class="field"><label for="ct-email">Votre e-mail</label><input id="ct-email" name="email" type="email" autocomplete="email" maxlength="200" required></div>
+            <div class="field"><label for="ct-email">Votre e-mail</label><input id="ct-email" name="email" type="email" autocomplete="email" maxlength="200" required pattern="[^@\s]+@[^@\s]+\.[^@\s]+"><span class="f-err" id="ct-email-err">Adresse incomplète : par exemple prenom@exemple.fr</span></div>
           </div>
           <div class="field"><label for="ct-when" id="ct-when-l">Date du mariage</label><input id="ct-when" name="when" maxlength="120" placeholder="Par exemple : samedi 19 juin 2027"></div>
           <div class="ct-wed" id="ct-wed">

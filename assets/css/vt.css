@@ -1,4 +1,5 @@
 /* Transition fluide entre l'accueil et les pages de séance : seules ces pages l'activent
-   (index.html et les pages créées à partir d'elle). */
-@view-transition { navigation: auto; }
-@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+   (index.html et les pages créées à partir d'elle), et seulement si l'appareil accepte les animations. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
