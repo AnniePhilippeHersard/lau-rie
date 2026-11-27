@@ -67,6 +67,17 @@ export function libraryOf(portfolio) {
   return lib;
 }
 
+// ---------------------------------------------------------------- autres fonctions publiques (sans session)
+export async function callFn(name, payload) {
+  const res = await fetch(`${BASE}/functions/v1/${name}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", apikey: SUPABASE.anonKey },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
+}
+
 // ---------------------------------------------------------------- fonction « gallery »
 export async function callGallery(payload) {
   const res = await fetch(`${BASE}/functions/v1/gallery`, {

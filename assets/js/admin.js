@@ -4,7 +4,7 @@ import {
   LEGAL_REQ, usesDemoPhotos, fillTpl, qrSvg, qrPaint, logoImage, initSheets, openSheet, closeSheets, initTypo,
   saveBlob, EMAIL, DEMO_DIMS,
 } from "./core.js";
-import { DEMO, getClient, publicUrl, galleryLink, siteBase, libraryOf } from "./api.js";
+import { DEMO, getClient, publicUrl, galleryLink, siteBase, libraryOf, callFn } from "./api.js";
 
 // Jamais affichée à l'intérieur d'une autre page (clickjacking)
 if (window.top !== window.self) {
@@ -50,6 +50,16 @@ async function boot() {
     if (event === "SIGNED_OUT") showLogin();
     if (s) user = s.user;
   });
+  // Lien reçu par e-mail (« mot de passe oublié ») : admin.html#reset=<jeton>
+  const reset = (location.hash.match(/^#reset=([^&]+)/) || [])[1];
+  if (reset) {
+    history.replaceState(null, "", location.pathname + location.search); // le jeton ne reste ni dans l'adresse ni dans l'historique
+    const { data: v, error } = await sb.auth.verifyOtp({ token_hash: decodeURIComponent(reset), type: "recovery" });
+    if (error || !v?.session) { showLogin("Ce lien a expiré ou a déjà servi. Redemandez un e-mail avec « Mot de passe oublié »."); return; }
+    await enter(v.session.user);
+    $("np-err").textContent = ""; openSheet("s-np"); $("np-1").focus();
+    return;
+  }
   const { data } = await sb.auth.getSession();
   if (data.session) await enter(data.session.user); else showLogin();
 }
@@ -66,8 +76,13 @@ $("a-login-form").addEventListener("submit", async (e) => {
 $("a-forgot").onclick = async () => {
   const m = $("a-mail").value.trim();
   if (!EMAIL.test(m)) { $("a-login-err").textContent = "Saisissez d'abord votre e-mail."; $("a-mail").focus(); return; }
-  if (sb) await sb.auth.resetPasswordForEmail(m, { redirectTo: location.href.split("#")[0] });
-  $("a-login-err").textContent = "Si ce compte existe, un e-mail vient d'être envoyé. Sinon, demandez un mot de passe provisoire à l'autre administratrice.";
+  $("a-login-err").textContent = "Envoi…";
+  // E-mail envoyé par le site (lau.rie) ; à défaut (fonction absente ou non réglée), par Supabase
+  let r = null;
+  try { r = await callFn("mot-de-passe", { email: m }); } catch { /* réseau : on tente Supabase */ }
+  if (r && r.status === 429) { $("a-login-err").textContent = r.data.error || "Trop de demandes. Réessayez dans une heure."; return; }
+  if (!r || !r.ok) { if (sb) await sb.auth.resetPasswordForEmail(m, { redirectTo: location.href.split("#")[0] }); }
+  $("a-login-err").textContent = "Si ce compte existe, un e-mail vient d'être envoyé. Pensez à regarder dans les indésirables. Sinon, demandez un mot de passe provisoire à l'autre administratrice.";
 };
 $("np-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -1685,6 +1700,15 @@ const HEALTH = [
       if (!h.from) return ["warn", "Les notifications marchent, mais les e-mails aux clients (rappels, envoi de galerie) attendent votre nom de domaine (guide, étape 10.2)."];
       return [h.cron ? "ok" : "warn", h.cron ? "Branchés : notifications, rappels et envoi des galeries." : "Branchés, mais la tâche des rappels quotidiens manque (secret CRON_SECRET, guide étape 10.2)."];
     } catch (e) { return /inconnue/i.test(errMsg(e)) ? ["warn", "La fonction « admin-users » est d'une ancienne version : redéployez-la (guide, étape 4)."] : ["warn", "Vérification impossible : " + errMsg(e)]; }
+  }],
+  ["E-mail « mot de passe oublié »", async () => {
+    try {
+      const r = await callFn("mot-de-passe", { action: "health" });
+      if (!r.ok) return ["warn", "Il part encore de Supabase, en anglais : déployez la fonction « mot-de-passe » (guide, étape 4)."];
+      if (!r.data.mails) return ["warn", "Il part encore de Supabase : la fonction attend RESEND_API_KEY et REMIND_FROM (guide, étape 10)."];
+      if (!r.data.site) return ["warn", "Il part encore de Supabase : réglez le secret SITE_URL (https://lau-rie.fr) ou ALLOWED_ORIGINS."];
+      return ["ok", "Envoyé par le site, en français, depuis votre adresse."];
+    } catch (e) { return ["warn", "Vérification impossible : " + errMsg(e)]; }
   }],
   ["Nom de domaine", async () => /github\.io$/.test(location.hostname) ? ["warn", "Le site est encore à son adresse provisoire (" + location.hostname + "). Branchez lau-rie.fr (guide, étape 11)."] : /^(localhost|127\.)/.test(location.hostname) ? ["warn", "Page ouverte en local."] : ["ok", "Le site répond sur " + location.hostname + "."]],
   ["Publication automatique", async () => {

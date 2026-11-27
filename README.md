@@ -34,6 +34,7 @@ Front 100 % statique (HTML, CSS, JavaScript sans framework ni build), hébergé 
 | `supabase/migrations/` | Schéma, à exécuter dans l'ordre |
 | `supabase/functions/gallery` | Seule porte d'entrée des visiteurs : ouverture d'une galerie, sélection, cœurs anonymes, photo masquée, avis, contact |
 | `supabase/functions/admin-users` | Création de comptes, mots de passe provisoires, retrait d'accès, envoi du lien d'une galerie aux clients (administratrices seulement) |
+| `supabase/functions/mot-de-passe` | E-mail « mot de passe oublié » de l'espace photographe, envoyé par Resend depuis l'adresse du site (réponse identique que le compte existe ou non, limites anti-abus) |
 | `supabase/functions/reminders` | Rappels avant fermeture, appelée chaque jour par `pg_cron` + `pg_net` |
 | `assets/js/story.js` | Balisage et adresses d'une séance, partagés par le site et par `tools/pages-seo.mjs` |
 | `tools/pages-seo.mjs` | Prépare la publication : copie du site, accueil pré-rempli (titre, description, fiche entreprise JSON-LD), une page HTML par séance, `sitemap.xml`, `llms.txt` (résumé pour les assistants IA) |
@@ -68,6 +69,7 @@ supabase link --project-ref <ref>
 supabase db push                                   # les six migrations
 supabase functions deploy gallery --no-verify-jwt
 supabase functions deploy admin-users --no-verify-jwt
+supabase functions deploy mot-de-passe --no-verify-jwt
 supabase functions deploy reminders --no-verify-jwt
 supabase secrets set ALLOWED_ORIGINS=https://lau-rie.fr,https://www.lau-rie.fr
 # facultatif : e-mails (Resend)

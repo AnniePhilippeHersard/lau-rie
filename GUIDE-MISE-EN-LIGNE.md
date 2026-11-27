@@ -87,19 +87,19 @@ Tu vas coller sept « recettes » qui créent les tables et les règles de sécu
 
 ## Étape 4 — Installer les trois fonctions
 
-Ce sont de petits programmes qui tournent chez Supabase : `gallery` ouvre les galeries à tes clients et reçoit le formulaire de contact, `admin-users` gère les comptes de l'espace photographe, `reminders` envoie les rappels avant fermeture.
+Ce sont de petits programmes qui tournent chez Supabase : `gallery` ouvre les galeries à tes clients et reçoit le formulaire de contact, `admin-users` gère les comptes de l'espace photographe, `reminders` envoie les rappels avant fermeture, `mot-de-passe` envoie l'e-mail « mot de passe oublié » depuis ton adresse (sinon, c'est Supabase qui l'envoie, en anglais).
 
 Pour **chacune** des trois :
 
 1. Sur GitHub, ouvre `supabase` → `functions` → le dossier de la fonction → **`index.ts`** → **Copy raw file**.
 2. Dans Supabase : **Edge Functions** → **Deploy a new function** → **Via Editor**.
 3. Efface le code d'exemple, colle le tien.
-4. Nom de la fonction : **exactement** `gallery`, `admin-users` ou `reminders`.
+4. Nom de la fonction : **exactement** `gallery`, `admin-users`, `reminders` ou `mot-de-passe`.
 5. **Deploy function**.
 6. Une fois déployée, ouvre ses **Details** (ou **Settings**) et **désactive Verify JWT** (ou **Enforce JWT Verification**), puis enregistre.
    *C'est normal : tes clients n'ont pas de compte. Chaque fonction vérifie elle-même le code de la galerie, la connexion de l'administratrice ou le secret des rappels.*
 
-✅ Dans **Edge Functions**, tu vois `gallery`, `admin-users` et `reminders`.
+✅ Dans **Edge Functions**, tu vois `gallery`, `admin-users`, `reminders` et `mot-de-passe`.
 
 ---
 
