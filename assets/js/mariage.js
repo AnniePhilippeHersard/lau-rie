@@ -82,7 +82,7 @@ function drawForms() {
       '<a class="btn ghost" href="index.html#contact">Parler de cette formule</a>';
     box.insertBefore(d, inc);
   });
-  if (inc) inc.querySelector("p").textContent = list.length > 1 ? "Dans tous les cas :" : "Comprend :";
+  if (inc) inc.querySelector("p").textContent = list.length > 1 ? "Dans tous les cas\u00a0:" : "Comprend\u00a0:";
 }
 
 function drawDelay() {
