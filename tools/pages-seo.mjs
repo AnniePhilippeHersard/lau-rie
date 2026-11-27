@@ -84,6 +84,21 @@ function finish(S, pages, hero) {
   sitemap(["mariage.html", ...pages.map((p) => p.file)]);
   homepage(S, hero);
   llms(S, pages);
+  narrowCsp();
+}
+
+// Politique de sécurité des pages : « tous les projets Supabase » (*.supabase.co) devient
+// le seul projet de config.js, dans les pages publiées (le dépôt reste générique)
+function narrowCsp() {
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(SB.url)) return;
+  const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => {
+    const f = path.join(d, e.name);
+    if (e.isDirectory()) return walk(f);
+    if (!e.name.endsWith(".html")) return;
+    const h = fs.readFileSync(f, "utf8");
+    if (h.includes("https://*.supabase.co")) fs.writeFileSync(f, h.split("https://*.supabase.co").join(SB.url));
+  });
+  walk(OUT);
 }
 
 function sitemap(files) {
