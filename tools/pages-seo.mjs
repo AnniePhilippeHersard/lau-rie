@@ -72,7 +72,7 @@ function llms(S, pages) {
     "Photographe : " + ((S.legal && S.legal.owner) || "Laurie") + ". Basée à " + (S.city || "Nantes") + ". Zone : " + (S.area || "") + ".\n" +
     "Séances : mariages (reportage), familles, portraits, en lumière naturelle. Livraison dans une galerie privée en ligne, avec sélection des photos préférées et partage aux proches.\n\n" +
     (prices ? "## Tarifs\n\n" + prices + "\n\n" : "") +
-    "## Pages\n\n- [Accueil](" + BASE + "/)\n- [Contact](" + BASE + "/index.html#contact)\n- [Tarifs](" + BASE + "/index.html#tarifs)\n" +
+    "## Pages\n\n- [Accueil](" + BASE + "/)\n- [Mariage](" + BASE + "/mariage.html)\n- [Contact](" + BASE + "/index.html#contact)\n- [Tarifs](" + BASE + "/index.html#tarifs)\n" +
     pages.map((p) => "- [" + p.title + "](" + BASE + "/" + p.file + ")").join("\n") + (pages.length ? "\n" : "") +
     "\nContact : " + (S.mail || "") + "\n";
   fs.writeFileSync(path.join(OUT, "llms.txt"), txt);
@@ -81,7 +81,7 @@ function llms(S, pages) {
 function finish(S, pages, hero) {
   // Date de publication, lue par l'écran « Santé du site »
   fs.writeFileSync(path.join(OUT, "version.json"), JSON.stringify({ built_at: new Date().toISOString(), pages: pages.length }) + "\n");
-  sitemap(pages.map((p) => p.file));
+  sitemap(["mariage.html", ...pages.map((p) => p.file)]);
   homepage(S, hero);
   llms(S, pages);
 }
@@ -174,5 +174,5 @@ stories.forEach((s, k) => {
   fs.writeFileSync(path.join(OUT, file), h);
   files.push({ file, title: s.title + (s.place ? ", " + String(s.kind || "").toLowerCase() + " à " + s.place : "") });
 });
-finish(merge(content), files, imgOf((content.slots && content.slots.hero1) || "veil"));
+finish(merge(content), files, imgOf((content.slots && content.slots.hero1) || "m-sunset"));
 console.log(files.length + " page(s) de séance créée(s) : " + (files.map((f) => f.file).join(", ") || "aucune"));

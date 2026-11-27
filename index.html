@@ -50,7 +50,7 @@
   <header class="top">
     <div class="wrap">
       <a class="mark" href="#" aria-label="lau.rie, accueil"><svg class="logo" viewBox="0 0 3060 798" aria-hidden="true" focusable="false"><use href="#lr-logo"/></svg></a>
-      <nav aria-label="Principal"><a href="#seances">Séances</a><a href="#galerie-privee">Votre galerie</a><a href="#tarifs">Tarifs</a><a href="#apropos">À propos</a><a href="#contact">Contact</a></nav>
+      <nav aria-label="Principal"><a href="#seances">Séances</a><a href="#deroule">Déroulé</a><a href="#tarifs">Tarifs</a><a href="#apropos">À propos</a><a href="#contact">Contact</a></nav>
       <div class="right">
         <a class="btn ghost" href="galerie.html">Espace client</a>
         <button class="icon-btn menu" type="button" id="menu-open" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="drawer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 9h16M4 15h16"/></svg></button>
@@ -64,7 +64,7 @@
       <p class="kicker" id="kicker">Photographe mariage &amp; famille · Saumur, Angers, Nantes</p>
       <h1 class="serif" id="h-hero"><span class="ln"><span id="h1a">Des histoires</span></span><span class="ln"><em id="h1b">à garder</em></span></h1>
       <div class="prints">
-        <figure class="print pA"><div class="ph" id="cycle"><img class="on" data-slot="hero1" data-sizes="(max-width: 760px) 62vw, 30vw" alt="" fetchpriority="high"><img data-slot="hero2" data-sizes="(max-width: 760px) 62vw, 30vw" alt=""><img data-slot="hero3" data-sizes="(max-width: 760px) 62vw, 30vw" alt=""></div></figure>
+        <figure class="print pA"><div class="ph" id="cycle"><img class="on" data-slot="hero1" data-sizes="(max-width: 760px) 62vw, 30vw" alt="" fetchpriority="high"><img data-slot="hero2" data-sizes="(max-width: 760px) 62vw, 30vw" alt="" fetchpriority="low"><img data-slot="hero3" data-sizes="(max-width: 760px) 62vw, 30vw" alt="" fetchpriority="low"></div></figure>
         <figure class="print pB"><div class="ph"><img data-slot="hero4" data-sizes="(max-width: 760px) 40vw, 18vw" alt=""></div><figcaption id="hero-cap"></figcaption></figure>
         <figure class="print pC"><div class="ph"><img data-slot="hero5" data-sizes="(max-width: 760px) 40vw, 16vw" alt=""></div></figure>
       </div>
@@ -76,12 +76,12 @@
   <section class="sec wrap" id="seances" aria-labelledby="h-works">
     <div class="works" id="works">
       <h2 class="serif rv" id="h-works">Séances<br><em>récentes</em></h2>
-      <p class="lead rv" style="--d:80ms">Chaque séance a son histoire. Touchez une photo pour la découvrir.</p>
+      <div class="lead rv" style="--d:80ms"><p>Chaque séance a son histoire. Touchez une photo pour la découvrir.</p><a class="btn ghost" href="#contact">Raconter la vôtre</a></div>
     </div>
   </section>
 
   <section class="sec wrap steps-sec" id="deroule" aria-labelledby="h-steps">
-    <h2 class="serif rv" id="h-steps">Comment <em>ça se passe</em></h2>
+    <div class="steps-head"><h2 class="serif rv" id="h-steps">Comment <em>ça se passe</em></h2><div class="ph steps-ph rv"><img data-slot="steps" data-sizes="(max-width: 760px) 92vw, 56vw" alt="" loading="lazy"></div></div>
     <ol class="steps" id="steps">
       <li class="step rv"><h3>On fait connaissance</h3><span class="when">Dès votre message</span><p>Un appel ou un café pour parler de vous, du lieu et de vos envies. Je vous envoie ensuite un devis clair.</p></li>
       <li class="step rv" style="--d:90ms"><h3>La séance</h3><span class="when">Le jour J</span><p>Je me fais discrète et je guide juste ce qu'il faut. Vous vivez le moment, je m'occupe du reste.</p></li>
@@ -111,7 +111,7 @@
 
   <section class="sec wrap" id="avis" aria-labelledby="h-words" style="padding-bottom:clamp(96px, 9vw, 150px)">
     <div class="word" id="av-wrap">
-      <div class="ph big rv"><img id="av-img" alt=""></div>
+      <div class="ph big rv"><img id="av-img" alt="" loading="lazy"></div>
       <div class="txt">
         <h2 class="serif rv" id="h-words">Ce qu'ils <em>en disent</em></h2>
         <blockquote class="rv" style="--d:90ms" aria-live="polite"><p id="av-text"></p><cite id="av-who"></cite></blockquote>
@@ -147,16 +147,17 @@
   <section class="sec wrap" id="apropos" aria-labelledby="h-about">
     <div class="about-head">
       <h2 class="serif rv" id="h-about">Derrière <em>l'objectif</em></h2>
-      <p class="rv" style="--d:80ms">Je photographie les gens comme ils sont : un rire qui s'échappe, une main qui se pose, la lumière de fin de journée sur les bords de Loire.</p>
+      <p class="rv" style="--d:80ms">Je m'appelle Laurie. Je photographie les gens comme ils sont : un rire qui s'échappe, une main qui se pose, la lumière de fin de journée sur les bords de Loire.</p>
     </div>
     <div class="about-grid">
-      <div class="about-photo rv"><div class="ph"><img data-slot="about" alt="" loading="lazy"></div><p class="note">Je travaille seule et je prends peu de séances par an, pour soigner chaque histoire et chaque galerie.</p></div>
-      <dl class="facts rv" style="--d:120ms">
+      <div class="about-photo rv"><div class="ph"><img data-slot="about" alt="" loading="lazy"></div><p class="who" hidden>Laurie, derrière l'objectif</p></div>
+      <div class="about-side rv" style="--d:120ms"><p class="note">Je travaille seule et je prends peu de séances par an, pour soigner chaque histoire et chaque galerie.</p>
+      <dl class="facts">
         <div><dt>Où</dt><dd>De Saumur à Nantes, en Anjou, en Loire-Atlantique et dans tout le Pays de la Loire</dd></div>
         <div><dt>Séances</dt><dd>Mariages, familles, portraits</dd></div>
         <div><dt>Livraison</dt><dd>Trois à quatre semaines</dd></div>
         <div><dt>Galerie en ligne</dt><dd>Un an</dd></div>
-      </dl>
+      </dl></div>
     </div>
   </section>
 
@@ -203,7 +204,7 @@
 
 <div class="drawer" id="drawer" aria-hidden="true">
   <div style="display:flex;justify-content:space-between;align-items:center;min-height:54px"><span class="mark" role="img" aria-label="lau.rie"><svg class="logo" viewBox="0 0 3060 798" aria-hidden="true" focusable="false"><use href="#lr-logo"/></svg></span><button class="icon-btn" type="button" id="menu-close" aria-label="Fermer le menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-  <ul><li><a href="#seances">Séances</a></li><li><a href="#galerie-privee">Votre galerie</a></li><li><a href="#tarifs">Tarifs</a></li><li><a href="#apropos">À propos</a></li><li><a href="#contact">Contact</a></li></ul>
+  <ul><li><a href="#seances">Séances</a></li><li><a href="mariage.html">Mariage</a></li><li><a href="#deroule">Déroulé</a></li><li><a href="#tarifs">Tarifs</a></li><li><a href="#apropos">À propos</a></li><li><a href="#contact">Contact</a></li></ul>
   <a class="btn" href="galerie.html" style="align-self:start">Espace client</a>
   <a class="d-pro" href="admin.html">Espace photographe</a>
 </div>
@@ -232,7 +233,7 @@
 <footer class="foot">
   <div class="foot-in foot-cols">
     <ul><li>lau.rie</li><li>Photographe à Nantes</li><li>Pays de la Loire</li></ul>
-    <ul><li>Le site</li><li><a href="#seances">Séances</a></li><li><a href="#tarifs">Tarifs</a></li><li><a href="#apropos">À propos</a></li></ul>
+    <ul><li>Le site</li><li><a href="#seances">Séances</a></li><li><a href="mariage.html">Mariage</a></li><li><a href="#tarifs">Tarifs</a></li><li><a href="#apropos">À propos</a></li></ul>
     <ul><li>Suivre</li><li><a data-ig href="https://www.instagram.com/" target="_blank" rel="noopener">Instagram</a></li><li><a data-mail-only href="mailto:bonjour@lau-rie.fr">E-mail</a></li></ul>
     <ul><li>Accès</li><li><a href="galerie.html">Espace client</a></li><li><a href="admin.html">Espace photographe</a></li><li><button class="to-top" type="button" data-top>Haut de page</button></li></ul>
   </div>

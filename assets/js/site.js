@@ -92,6 +92,10 @@ function putImg(el, ref) {
 }
 function fillSlots() {
   document.querySelectorAll("img[data-slot]").forEach((el) => putImg(el, slotRef(SITE, el.dataset.slot)));
+  // « Laurie, derrière l'objectif » : seulement quand c'est sa propre photo, jamais sous une photo d'exemple
+  const own = !DEMO_DIMS[slotRef(SITE, "about")], who = document.querySelector(".about-photo .who"), ab = document.querySelector('img[data-slot="about"]');
+  if (who) who.hidden = !own;
+  if (ab) ab.alt = own ? "Laurie, photographe" : "";
   $("hero-cap").hidden = true;
   cyc = [...$("cycle").querySelectorAll("img")].filter((x) => x.getAttribute("src"));
   $("demo-credit").hidden = !usesDemoPhotos(SITE);
@@ -149,7 +153,7 @@ function drawRun() {
   $("run").style.setProperty("--cols", ds.map((d, i) => (d ? (d.w / d.h) * (i === 0 ? 2.2 : 1) : 1).toFixed(3) + "fr").join(" "));
   $("run").innerHTML = ds.map((d, i) => {
     const f = !!exFavs[i];
-    return '<figure class="frame' + (i === 0 ? " lift" : "") + '" style="--r:' + (d ? d.w + " / " + d.h : "1") + '"><div class="ph">' + (d ? '<img alt="Photo ' + (i + 1) + ' de la galerie d\'exemple"' + srcAttrs(d, i === 0 ? "(max-width: 760px) 70vw, 40vw" : "(max-width: 760px) 40vw, 22vw") + ' src="' + esc(d.src) + '">' : "") + "</div>" +
+    return '<figure class="frame' + (i === 0 ? " lift" : "") + '" style="--r:' + (d ? d.w + " / " + d.h : "1") + '"><div class="ph">' + (d ? '<img loading="lazy" alt="Photo ' + (i + 1) + ' de la galerie d\'exemple"' + srcAttrs(d, i === 0 ? "(max-width: 760px) 70vw, 40vw" : "(max-width: 760px) 40vw, 22vw") + ' src="' + esc(d.src) + '">' : "") + "</div>" +
       '<button class="round" type="button" data-act="fav" data-i="' + i + '" aria-pressed="' + f + '" aria-label="' + (f ? "Retirer des" : "Ajouter aux") + " favorites, photo " + (i + 1) + '">' + HEART.replace("FILL", f ? "currentColor" : "none") + "</button>" +
       '<figcaption class="cap">Photo ' + (i + 1) + "</figcaption></figure>";
   }).join("");
@@ -178,7 +182,7 @@ function priceImg(p) {
   const st = visibleStories().filter((s) => s.kind === k);
   const half = /demi/i.test(p.name);
   const s = st[half && st.length > 1 ? 1 : 0];
-  return s ? img(s.photos[0]) : img(slotRef(SITE, "about"));
+  return s ? img(s.photos[1] || s.photos[0]) : img(slotRef(SITE, "about"));
 }
 function drawPrice(anim) {
   const p = SITE.prices[prSel], el = $("pr-panel");
@@ -222,7 +226,7 @@ function drawReview(animate) {
   avI = (avI + L.length) % L.length;
   const r = L[avI];
   const put = () => {
-    const d = img(r.image_path, "tender");
+    const d = img(r.image_path, "c-tree");
     if (d) { const im = $("av-img"); if (d.ss) { im.sizes = "(max-width: 760px) 90vw, 40vw"; im.srcset = d.ss; } else im.removeAttribute("srcset"); im.src = d.src; $("av-img").width = d.w; $("av-img").height = d.h; $("av-img").style.objectPosition = d.pos || ""; }
     $("av-img").alt = "Photo de la séance de " + r.who;
     $("av-text").textContent = "« " + r.body + " »";

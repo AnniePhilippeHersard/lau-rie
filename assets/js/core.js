@@ -58,7 +58,8 @@ export const ymd = (d) => (d ? String(d).slice(0, 10) : "");
 
 // ---------------------------------------------------------------- images
 // Photos d'exemple (Unsplash), affichées tant que la photographe n'a pas mis les siennes.
-export const DEMO_DIMS = {"bouquet": [1484, 924], "bw-beach": [1000, 581], "church": [1000, 664], "couple-path": [1484, 986], "dance": [1484, 986], "dark-dress": [1000, 932], "family-dog": [850, 1000], "family-field": [707, 1000], "family-river": [746, 1000], "fence": [1000, 594], "kiss": [1484, 986], "portrait-field": [707, 1000], "stand": [1000, 664], "tender": [707, 1000], "touch": [707, 1000], "veil": [707, 1000], "window": [790, 983]};
+// Aucune ne montre une photographe : la place du portrait de Laurie attend sa vraie photo.
+export const DEMO_DIMS = {"c-embrace": [640, 960], "c-hill": [640, 960], "c-tree": [640, 960], "c-walk": [640, 960], "f-boys": [640, 960], "f-gold": [640, 960], "f-hats": [640, 896], "f-hold": [640, 960], "f-lift": [640, 960], "f-pose": [640, 960], "f-wait": [640, 960], "m-beach": [1000, 667], "m-ceremony": [1000, 667], "m-dance": [1000, 667], "m-forest": [640, 962], "m-hug": [1000, 668], "m-night": [1000, 667], "m-pose": [640, 961], "m-stand": [1000, 800], "m-studio": [640, 958], "m-sunset": [640, 901], "m-wall": [640, 958], "p-black": [640, 960], "p-freckles": [640, 960], "p-laugh": [640, 960], "p-pony": [640, 960], "p-smile": [640, 959], "p-trees": [640, 960]};
 export function demoImg(key) {
   const d = DEMO_DIMS[key];
   return d ? { src: new URL(`../img/demo/${key}.webp`, import.meta.url).href, w: d[0], h: d[1], demo: true } : null;
@@ -106,15 +107,15 @@ export const SITE_DEF = {
   slots: {},
 };
 export const SLOT_DEF = {
-  hero1: "veil", hero2: "touch", hero3: "tender", hero4: "dark-dress", hero5: "bouquet",
-  run1: "veil", run2: "tender", run3: "dark-dress",
-  about: "couple-path", contact: "portrait-field", access: "fence", login: "window",
+  hero1: "m-sunset", hero2: "m-pose", hero3: "m-forest", hero4: "f-lift", hero5: "f-boys",
+  run1: "c-hill", run2: "c-tree", run3: "c-embrace", steps: "m-beach",
+  about: "c-walk", contact: "m-wall", access: "c-tree", login: "c-walk",
 };
 export const SLOT_LABELS = {
   hero1: "Grand tirage, photo 1", hero2: "Grand tirage, photo 2", hero3: "Grand tirage, photo 3",
   hero4: "Petit tirage du haut", hero5: "Petit tirage du bas",
   run1: "Galerie d'exemple, photo 1", run2: "Galerie d'exemple, photo 2", run3: "Galerie d'exemple, photo 3",
-  about: "À propos", contact: "Contact", access: "Page d'accès des clients", login: "Connexion de l'espace photographe",
+  steps: "Déroulé", about: "À propos", contact: "Contact", access: "Page d'accès des clients", login: "Connexion de l'espace photographe",
 };
 export const LEGAL_DEF = {
   owner: "", status: "Entrepreneur individuel (micro-entreprise)", siret: "", address: "", phone: "",
@@ -125,18 +126,18 @@ export const LEGAL_DEF = {
 export const LEGAL_REQ = [["owner", "nom"], ["siret", "SIRET"], ["address", "adresse"], ["phone", "téléphone"], ["mediator", "médiateur"]];
 // Séances d'exemple : à remplacer par les vraies depuis l'espace photographe
 export const STORY_DEF = [
-  { id: "lt", title: "Léa & Thomas", kind: "Mariage", place: "Saumur", when: "Juin 2026", text: "Une cérémonie dans un domaine de tuffeau au bord de la Loire, un vent qui soulevait les voiles et des invités qui dansaient pieds nus. Léa voulait des photos qui ressemblent à la journée : douces, vivantes, sans pose.", photos: ["kiss", "veil", "stand", "bouquet", "tender", "dance"], show: true, demo: true },
-  { id: "fm", title: "Famille Moreau", kind: "Famille", place: "Pornic", when: "Septembre 2026", text: "Un dimanche de fin d'été au bord de la mer. Les enfants ont couru, le chien aussi ; on a surtout photographié ce qui se passait entre deux éclats de rire.", photos: ["family-dog", "family-field", "family-river"], show: true, demo: true },
-  { id: "in", title: "Inès", kind: "Portrait", place: "Angers", when: "Octobre 2026", text: "Une heure dans les herbes hautes au bord de la Maine, à l'heure où la lumière devient dorée. Un portrait pour elle, sans artifice.", photos: ["portrait-field", "window", "dark-dress"], show: true, demo: true },
-  { id: "lg", title: "Famille Le Goff", kind: "Famille", place: "Clisson", when: "Août 2026", text: "Les rochers au bord de la Sèvre, la lumière sous les arbres, et l'attente d'un deuxième enfant. Une séance lente, au rythme du plus petit.", photos: ["family-river", "family-field", "family-dog"], show: true, demo: true },
-  { id: "cl", title: "Clémence", kind: "Portrait", place: "Nantes", when: "Mai 2026", text: "Chez elle, près de la fenêtre, avec la seule lumière du jour. On a pris le temps, et les images sont venues d'elles-mêmes.", photos: ["window", "portrait-field", "dark-dress"], show: true, demo: true },
-  { id: "ah", title: "Anaïs & Hugo", kind: "Mariage", place: "Amboise", when: "Mai 2026", text: "Une sortie d'église sous les pétales, un dîner dans un jardin clos et une fin de soirée sur la piste. Une journée pleine, racontée du matin au soir.", photos: ["church", "fence", "touch", "bw-beach", "dance", "stand"], show: true, demo: true },
+  { id: "lt", title: "Léa & Thomas", kind: "Mariage", place: "Saumur", when: "Juin 2026", text: "Une cérémonie dans un domaine de tuffeau au bord de la Loire, un vent qui soulevait les voiles et des invités qui dansaient pieds nus. Léa voulait des photos qui ressemblent à la journée : douces, vivantes, sans pose.", photos: ["m-ceremony", "m-dance", "m-studio"], show: true, demo: true },
+  { id: "fm", title: "Famille Moreau", kind: "Famille", place: "Pornic", when: "Septembre 2026", text: "Un dimanche de fin d'été au bord de la mer. Les enfants ont couru, le chien aussi ; on a surtout photographié ce qui se passait entre deux éclats de rire.", photos: ["f-pose", "f-hats", "f-hold"], show: true, demo: true },
+  { id: "in", title: "Inès", kind: "Portrait", place: "Angers", when: "Octobre 2026", text: "Une heure dans les herbes hautes au bord de la Maine, à l'heure où la lumière devient dorée. Un portrait pour elle, sans artifice.", photos: ["p-freckles", "p-trees", "p-laugh"], show: true, demo: true },
+  { id: "lg", title: "Famille Le Goff", kind: "Famille", place: "Clisson", when: "Août 2026", text: "Les rochers au bord de la Sèvre, la lumière sous les arbres, et l'attente d'un deuxième enfant. Une séance lente, au rythme du plus petit.", photos: ["f-wait", "f-gold", "c-walk"], show: true, demo: true },
+  { id: "cl", title: "Clémence", kind: "Portrait", place: "Nantes", when: "Mai 2026", text: "Chez elle, près de la fenêtre, avec la seule lumière du jour. On a pris le temps, et les images sont venues d'elles-mêmes.", photos: ["p-black", "p-pony", "p-smile"], show: true, demo: true },
+  { id: "ah", title: "Anaïs & Hugo", kind: "Mariage", place: "Amboise", when: "Mai 2026", text: "Une sortie d'église sous les pétales, un dîner dans un jardin clos et une fin de soirée sur la piste. Une journée pleine, racontée du matin au soir.", photos: ["m-night", "m-stand", "m-hug"], show: true, demo: true },
 ];
 // Avis d'exemple : affichés uniquement en mode démonstration (jamais sur le vrai site)
 export const REVIEWS_DEMO = [
-  { who: "Léa & Thomas", ctx: "Mariés en juin 2026, à Saumur", body: "On a ouvert la galerie le soir même. Toute la famille a pu télécharger ses photos préférées.", image_path: "tender" },
-  { who: "Sophie", ctx: "Séance famille à Pornic", body: "Les enfants ont oublié l'appareil au bout de cinq minutes. Les photos nous ressemblent, tout simplement.", image_path: "family-field" },
-  { who: "Camille & Paul", ctx: "Mariés à Angers", body: "Choisir nos favorites sur le téléphone, dans le train du retour : c'était parfait.", image_path: "veil" },
+  { who: "Léa & Thomas", ctx: "Mariés en juin 2026, à Saumur", body: "On a ouvert la galerie le soir même. Toute la famille a pu télécharger ses photos préférées.", image_path: "m-hug" },
+  { who: "Sophie", ctx: "Séance famille à Pornic", body: "Les enfants ont oublié l'appareil au bout de cinq minutes. Les photos nous ressemblent, tout simplement.", image_path: "f-hold" },
+  { who: "Camille & Paul", ctx: "Mariés à Angers", body: "Choisir nos favorites sur le téléphone, dans le train du retour : c'était parfait.", image_path: "m-studio" },
 ];
 
 // Contenu enregistré (table site_settings) + valeurs par défaut

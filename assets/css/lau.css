@@ -935,3 +935,116 @@ p, li, blockquote, figcaption, .st-lede { text-wrap: pretty; }
 .ct-form .field :is(input, textarea, select):user-invalid { border-color: #8A2B1F; box-shadow: 0 0 0 1px #8A2B1F; }
 .ct-form .field:has(:user-invalid) .f-err { display: block; }
 .ct-form .ct-two { align-items: start; } /* le message sous un champ ne décale pas le champ voisin */
+
+
+/* =================== Améliorations (nov. 2026) : mêmes couleurs et polices, mises en page corrigées =================== */
+/* Rythme : moins de vide entre les sections */
+.sec { padding-block: clamp(72px, 7.5vw, 124px); }
+#avis[hidden] + #tarifs { padding-top: clamp(72px, 7.5vw, 124px); }
+
+/* 2. Séances : une grille régulière, plus de trous */
+.works:not(.few) { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: clamp(40px, 4vw, 64px) clamp(16px, 2vw, 28px); align-items: end; }
+.works:not(.few) h2 { grid-column: 1 / 8; grid-row: 1; align-self: end; padding-bottom: 0; }
+.works:not(.few) .lead { grid-column: 9 / 13; grid-row: 4; align-self: end; padding-bottom: 46px; display: grid; gap: 20px; justify-items: start; }
+.works:not(.few) .lead p { max-width: 26ch; }
+.works:not(.few) .k1 { grid-column: 1 / 9; grid-row: 2; margin-top: 0; } .works:not(.few) .k1 .ph { aspect-ratio: 3 / 2; }
+.works:not(.few) .k2 { grid-column: 9 / 13; grid-row: 2; margin-top: 0; } .works:not(.few) .k2 .ph { aspect-ratio: 4 / 5; }
+.works:not(.few) .k3 { grid-column: 1 / 5; grid-row: 3; margin-top: 0; } .works:not(.few) .k3 .ph { aspect-ratio: 4 / 5; }
+.works:not(.few) .k4 { grid-column: 5 / 9; grid-row: 3; margin-top: 0; } .works:not(.few) .k4 .ph { aspect-ratio: 4 / 5; }
+.works:not(.few) .k6 { grid-column: 9 / 13; grid-row: 3; margin-top: 0; } .works:not(.few) .k6 .ph { aspect-ratio: 4 / 5; }
+.works:not(.few) .k5 { grid-column: 1 / 9; grid-row: 4; margin-top: 0; } .works:not(.few) .k5 .ph { aspect-ratio: 3 / 2; }
+@media (max-width: 900px) {
+  .works:not(.few) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 12px; align-items: start; }
+  .works:not(.few) h2, .works:not(.few) .lead { grid-column: 1 / -1; grid-row: auto; padding-bottom: 0; }
+  .works:not(.few) .lead { margin-top: -16px; }
+  .works:not(.few) .k1, .works:not(.few) .k5 { grid-column: 1 / -1; grid-row: auto; }
+  .works:not(.few) .k2, .works:not(.few) .k3, .works:not(.few) .k4, .works:not(.few) .k6 { grid-column: auto; grid-row: auto; }
+  .works:not(.few) .lead { order: -1; }
+  .works:not(.few) h2 { order: -2; }
+}
+
+/* 3. Déroulé : le titre et une photo, puis les étapes toujours visibles */
+.steps-head { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px clamp(24px, 4vw, 64px); align-items: end; }
+.steps-ph { aspect-ratio: 3 / 2; }
+.steps-ph img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 900px) { .steps-head { grid-template-columns: 1fr; } }
+
+/* Le contenu reste lisible même sans défilement (aperçus, Google) : on ne garde que le léger glissement */
+@media (prefers-reduced-motion: no-preference) {
+  .js .rv { opacity: 1; transform: translateY(18px); }
+  .js .rv.on { transform: none; }
+}
+
+/* 4. À propos : le portrait de Laurie, vertical, à côté des repères */
+.about-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px clamp(32px, 5vw, 80px); align-items: end; }
+.about-photo .ph { aspect-ratio: 4 / 5; }
+.about-photo .who { margin: 12px 0 0; font-size: var(--t-small); color: var(--muted); }
+.about-grid .facts { grid-template-columns: 1fr 1fr; gap: 28px 24px; padding-left: 0; }
+.about-side { display: grid; gap: clamp(32px, 4vw, 56px); align-content: end; }
+.about-side .note { margin: 0; max-width: 34ch; font-family: var(--f-display); font-style: italic; font-size: var(--t-state); line-height: 1.3; color: var(--ink); }
+@media (max-width: 900px) { .about-side { padding-top: 24px; } .works:not(.few) .lead { padding-bottom: 0; } .about-grid { grid-template-columns: 1fr; } .about-photo .ph { aspect-ratio: 4 / 5; } }
+
+/* 5. Tarifs : ce que comprend chaque formule, sans grand vide dessous */
+.pr-panel { align-items: start; }
+
+/* 9. Page Mariage */
+nav a[aria-current="page"] { text-decoration: underline; text-underline-offset: 6px; }
+.wed { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px clamp(16px, 2vw, 28px); margin-top: clamp(48px, 6vw, 88px); align-items: end; }
+.wed-txt { grid-column: 1 / 5; grid-row: 1 / 3; align-self: start; display: grid; gap: 12px; }
+.wed-txt h3 { font-family: var(--f-display); font-weight: 500; font-size: var(--t-state); line-height: 1.1; }
+.wed-meta { color: var(--muted); font-size: var(--t-small); }
+.wed-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wed-ph.a { grid-column: 5 / 13; grid-row: 1; aspect-ratio: 3 / 2; }
+.wed-ph.b { grid-column: 5 / 9; grid-row: 2; aspect-ratio: 4 / 5; }
+.wed-ph.c { grid-column: 9 / 13; grid-row: 2; aspect-ratio: 4 / 5; }
+.wed.flip .wed-txt { grid-column: 9 / 13; }
+.wed.flip .wed-ph.a { grid-column: 1 / 9; } .wed.flip .wed-ph.b { grid-column: 1 / 5; } .wed.flip .wed-ph.c { grid-column: 5 / 9; }
+.forms { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); margin-top: clamp(40px, 5vw, 72px); align-items: stretch; }
+.form-c { background: var(--paper-2); padding: clamp(24px, 3vw, 40px); display: grid; gap: 14px; justify-items: start; align-content: start; }
+.form-c h3 { font-family: var(--f-display); font-weight: 500; font-size: var(--t-state); }
+.form-c .big { font-family: var(--f-display); font-size: clamp(48px, 4.6vw, 72px); line-height: 1; letter-spacing: -0.02em; }
+.form-inc { padding: clamp(24px, 3vw, 40px) 0; display: grid; gap: 16px; align-content: start; }
+.faq-grid { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 32px clamp(32px, 5vw, 96px); }
+.faq details { border-top: 1px solid var(--paper-2); padding: 22px 0; }
+.faq summary { font-family: var(--f-display); font-size: var(--t-serif-s); cursor: pointer; list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; float: right; font-family: var(--f-ui); color: var(--muted); }
+.faq details[open] summary::after { content: "–"; }
+.faq p { margin-top: 12px; max-width: 56ch; }
+.cta-in { padding-block: clamp(80px, 9vw, 150px); display: grid; gap: 20px; justify-items: start; }
+.cta-in h2 { font-size: var(--t-h2); font-weight: 400; line-height: 0.98; }
+@media (max-width: 760px) {
+  .wed, .wed.flip { grid-template-columns: 1fr 1fr; }
+  .wed .wed-txt, .wed.flip .wed-txt { grid-column: 1 / -1; grid-row: auto; }
+  .wed .wed-ph.a, .wed.flip .wed-ph.a { grid-column: 1 / -1; grid-row: auto; }
+  .wed .wed-ph.b, .wed.flip .wed-ph.b { grid-column: 1; grid-row: auto; }
+  .wed .wed-ph.c, .wed.flip .wed-ph.c { grid-column: 2; grid-row: auto; }
+}
+
+/* Tablette (761 à 900 px) : le collage du haut ne chevauche plus le texte, les grilles respirent */
+@media (min-width: 761px) and (max-width: 900px) {
+  .hero .wrap { min-height: 0; padding-top: 40px; padding-bottom: 72px; display: flex; flex-direction: column; }
+  .hero h1 { font-size: 10.5vw; }
+  .prints { position: relative; inset: auto; order: 2; margin-top: 32px; height: 64vw; }
+  .pA { top: 0; right: 0; width: 52%; }
+  .pB { right: auto; left: 8%; top: 38%; width: 34%; }
+  .pC { right: auto; left: 0; top: 4%; width: 22%; }
+  .hero .lede { order: 3; margin-top: 32px; max-width: 40ch; }
+  .hero .act { order: 4; }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px 32px; }
+  .steps::before, .steps::after { display: none; }
+  .about-photo .ph { max-width: 520px; }
+}
+@media (max-width: 900px) {
+  .forms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .form-inc { grid-column: 1 / -1; padding-top: 8px; }
+  .faq-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) { .forms { grid-template-columns: 1fr; } }
+.form-c .btn { max-width: 100%; white-space: normal; text-align: center; }
+.wed-ph { display: block; overflow: hidden; }
+.wed-ph img { transition: transform 900ms var(--ease); }
+.wed-ph:hover img { transform: scale(1.03); }
+.wed-txt h3 a { text-decoration: none; }
+.wed-more { justify-self: start; display: inline-flex; align-items: center; min-height: 32px; font-size: var(--t-small); text-underline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .wed-ph img { transition: none; } .wed-ph:hover img { transform: none; } }
